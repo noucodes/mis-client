@@ -1,5 +1,3 @@
-import { KanbanBoard } from "@/components/recruitment-management/applicants/kanban";
-
 export default async function Page() {
     return (
         <main className="space-y-8">

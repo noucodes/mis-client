@@ -44,7 +44,7 @@ interface StepperConfig {
 interface StatusDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    applicantId: number | null;
+    applicantId: string | null;
 }
 
 const statusTypeValues: Record<string, string[]> = {

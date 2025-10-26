@@ -5,15 +5,7 @@ import {
   Settings2,
   LayoutDashboard,
   IdCardLanyard,
-  ClipboardList,
-  CircleAlert,
-  FileWarning,
-  GitPullRequest,
-  FilePenLine,
-  Spotlight,
   SquareUserRound,
-  CalendarDays,
-  CalendarCheck,
   Layers,
   List,
 } from "lucide-react";
@@ -244,24 +236,8 @@ export const HRecruitmentData = {
           url: "/recruitment/onboarding/dashboard",
         },
         {
-          title: "Orientation",
-          url: "/recruitment/onboarding/orientation",
-        },
-        {
-          title: "Google Account Creation",
-          url: "/recruitment/onboarding/google-account-creation",
-        },
-        {
-          title: "Time Doctor",
-          url: "/recruitment/onboarding/time-doctor",
-        },
-        {
-          title: "Documents / Requirements",
-          url: "/recruitment/onboarding/documents-requirements",
-        },
-        {
-          title: "Asset Assignment",
-          url: "/recruitment/onboarding/asset-assignment",
+          title: "Checklist",
+          url: "/recruitment/onboarding/checklist",
         },
       ],
     },

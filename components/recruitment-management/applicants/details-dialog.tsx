@@ -87,7 +87,7 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
             const token = localStorage.getItem("token") || "";
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
-            const [infoRes, historyRes, examRes] = await Promise.all([
+            const [infoRes, historyRes] = await Promise.all([
                 axios.get(`${baseUrl}/applicants/${applicantId}`, {
                     headers: {
                         "Content-Type": "application/json",
@@ -100,18 +100,18 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
                         Authorization: `Bearer ${token}`,
                     },
                 }),
-                axios.get(`${baseUrl}/examinations/applicant/${applicantId}`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }),
+                // axios.get(`${baseUrl}/examinations/applicant/${applicantId}`, {
+                //     headers: {
+                //         "Content-Type": "application/json",
+                //         Authorization: `Bearer ${token}`,
+                //     },
+                // }),
             ]);
 
             setPersonalInfo(infoRes.data);
             setStatusHistory(historyRes.data);
-            setExaminationData(examRes.data);
-            setWpm(examRes.data?.phaseThreeWpm?.toString() || "");
+            // setExaminationData(examRes.data);
+            // setWpm(examRes.data?.phaseThreeWpm?.toString() || "");
         } catch (err: any) {
             console.error("Error fetching applicant data:", err);
             setError("Failed to load applicant data. Please try again.");
@@ -219,7 +219,26 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
         try {
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return "Invalid Date";
-            return date.toLocaleString("en-US", {
+            return date.toLocaleString("en-PH", {
+                timeZone: "Asia/Manila",
+                month: "short",
+                day: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+            });
+        } catch (error) {
+            return "Invalid Date";
+        }
+    };
+
+    const formatExaminationDateTime = (dateString: string): string => {
+        if (!dateString) return "No Date Found";
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "Invalid Date";
+            return date.toLocaleString("en-PH", {
                 month: "short",
                 day: "2-digit",
                 year: "numeric",
@@ -304,6 +323,10 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
                                             <Label className="text-muted-foreground text-left">Referrer:</Label>
                                             <span className="col-span-2 text-left">{personalInfo.referrer || "N/A"}</span>
                                         </div>
+                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
+                                            <Label className="text-muted-foreground text-left">Date Hired:</Label>
+                                            <span className="col-span-2 text-left">{formatDateTime(personalInfo.date_hired)}</span>
+                                        </div>
                                     </div>
                                     <div className="space-y-3 flex flex-col items-left">
                                         <div className="grid grid-cols-3 gap-2 w-full max-w-md">
@@ -315,12 +338,16 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
                                             <span className="col-span-2 text-left">{personalInfo.application_status}</span>
                                         </div>
                                         <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Final Interview Date:</Label>
-                                            <span className="col-span-2 text-left">{formatDateTime(personalInfo.final_interview_date)}</span>
+                                            <Label className="text-muted-foreground text-left">Employment Type:</Label>
+                                            <span className="col-span-2 text-left">{personalInfo.employment_type}</span>
                                         </div>
                                         <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Date Hired:</Label>
-                                            <span className="col-span-2 text-left">{formatDateTime(personalInfo.date_hired)}</span>
+                                            <Label className="text-muted-foreground text-left">Examination Date:</Label>
+                                            <span className="col-span-2 text-left">{formatExaminationDateTime(personalInfo.final_interview_date)}</span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
+                                            <Label className="text-muted-foreground text-left">Final Interview Date:</Label>
+                                            <span className="col-span-2 text-left">{formatExaminationDateTime(personalInfo.final_interview_date)}</span>
                                         </div>
                                     </div>
                                 </div>

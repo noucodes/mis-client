@@ -45,17 +45,6 @@ import {
     ChevronsLeft,
     ChevronsRight,
 } from "lucide-react"
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 
 interface DataTableProps<TData, TValue> {

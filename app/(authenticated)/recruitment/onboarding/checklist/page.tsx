@@ -110,20 +110,24 @@ export default function Page() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>Onboarding</span>
                     <span>/</span>
-                    <span>Dashboard</span>
+                    <span>Checklist</span>
                 </div>
                 <h1 className="text-3xl font-bold text-balance">
-                    Onboarding Dashboard
+                    Checklist
                 </h1>
                 <p className="text-muted-foreground text-balance">
-                    Pipeline for the Onboarding Process
+                    Checklist for all applicants
                 </p>
             </div>
 
             <main className="flex-1 overflow-hidden">
-                <div className="text-center py-12 text-muted-foreground">
-                    Reports coming soon...
-                </div>
+                {isLoading ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                        Loading applicants...
+                    </div>
+                ) : (
+                    <DataTable columns={columns} data={data} />
+                )}
             </main>
         </main>
     );

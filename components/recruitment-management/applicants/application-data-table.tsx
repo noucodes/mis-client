@@ -81,6 +81,7 @@ export function DataTable<TData, TValue>({
         email: "",
         phone: "",
         position_applied: "",
+        employment_type: "",
         referrer: "",
     })
 
@@ -92,8 +93,12 @@ export function DataTable<TData, TValue>({
     }
 
     // Handler for shadcn Select component
-    const handleSelectChange = (value: string) => {
+    const handlePositionSelectChange = (value: string) => {
         setFormData((prev) => ({ ...prev, position_applied: value }))
+    }
+
+    const handleEmploymentSelectChange = (value: string) => {
+        setFormData((prev) => ({ ...prev, employment_type: value }))
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -123,7 +128,7 @@ export function DataTable<TData, TValue>({
             // Optionally refresh table without page reload:
             // you can lift state up and call a refetch function here
 
-            setFormData({ full_name: "", email: "", phone: "", position_applied: "", referrer: "" }) // reset form
+            setFormData({ full_name: "", email: "", phone: "", position_applied: "", employment_type: "", referrer: "" }) // reset form
         } catch (err) {
             console.error("Error creating applicant:", err)
         } finally {
@@ -202,27 +207,48 @@ export function DataTable<TData, TValue>({
                                             required
                                         />
                                     </div>
-                                    <div className="grid gap-3">
-                                        <Label htmlFor="position_applied">Position Applied</Label>
-                                        <Select
-                                            value={formData.position_applied} // controlled value
-                                            onValueChange={handleSelectChange} // use dedicated handler for Select
-                                            required
-                                        >
-                                            <SelectTrigger className="w-full border rounded-md p-2">
-                                                <SelectValue placeholder="Select a position" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectGroup>
-                                                    <SelectLabel>Select a position</SelectLabel>
-                                                    <SelectItem value="Junior Developer">Junior Developer</SelectItem>
-                                                    <SelectItem value="Senior Developer">Senior Developer</SelectItem>
-                                                    <SelectItem value="Team Lead">Team Lead</SelectItem>
-                                                    <SelectItem value="Project Manager">Project Manager</SelectItem>
-                                                    <SelectItem value="QA Engineer">QA Engineer</SelectItem>
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid gap-3">
+                                            <Label htmlFor="position_applied">Position Applied</Label>
+                                            <Select
+                                                value={formData.position_applied} // controlled value
+                                                onValueChange={handlePositionSelectChange} // use dedicated handler for Select
+                                                required
+                                            >
+                                                <SelectTrigger className="w-full border rounded-md p-2">
+                                                    <SelectValue placeholder="Select a position" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        <SelectLabel>Select a position</SelectLabel>
+                                                        <SelectItem value="Junior Developer">Junior Developer</SelectItem>
+                                                        <SelectItem value="Senior Developer">Senior Developer</SelectItem>
+                                                        <SelectItem value="Team Lead">Team Lead</SelectItem>
+                                                        <SelectItem value="Project Manager">Project Manager</SelectItem>
+                                                        <SelectItem value="QA Engineer">QA Engineer</SelectItem>
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                        </div><div className="grid gap-3">
+                                            <Label htmlFor="employment_type">Employment type</Label>
+                                            <Select
+                                                value={formData.employment_type} // controlled value
+                                                onValueChange={handleEmploymentSelectChange} // use dedicated handler for Select
+                                                required
+                                            >
+                                                <SelectTrigger className="w-full border rounded-md p-2">
+                                                    <SelectValue placeholder="Select a type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        <SelectLabel>Select a Type</SelectLabel>
+                                                        <SelectItem value="Online">Online</SelectItem>
+                                                        <SelectItem value="Onsite">Onsite</SelectItem>
+                                                        <SelectItem value="Hybrid">Hybrid</SelectItem>
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
                                     <div className="grid gap-3">
                                         <Label htmlFor="referrer">Referrer (Optional)</Label>

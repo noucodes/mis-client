@@ -42,7 +42,12 @@ export function LoginForm({
       toast.success("Login successful!");
       console.log("User:", res.data.user);
 
-      window.location.href = "/dashboard";
+      if (res.data.role === "hr") {
+        window.location.href = "/recruitment/dashboard";
+      } else {
+        window.location.href = "/dashboard";
+      }
+
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Something went wrong");
     } finally {
@@ -67,7 +72,7 @@ export function LoginForm({
                 <FieldLabel htmlFor="email">Email or Employee ID</FieldLabel>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   placeholder="m@example.com"
                   value={emailOrId}
                   onChange={(e) => setEmailOrId(e.target.value)}
@@ -83,6 +88,7 @@ export function LoginForm({
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
               </Field>
               <Field>

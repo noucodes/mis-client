@@ -61,7 +61,7 @@ export function RecentApplicants() {
   }, [statusFilter]);
 
   return (
-    <Card className="lg:col-span-2 overflow-y-auto">
+    <Card className="lg:col-span-2">
       <CardHeader>
         <CardTitle>Recent Applicants</CardTitle>
         <CardDescription>Latest applicants on the platform</CardDescription>
@@ -82,7 +82,7 @@ export function RecentApplicants() {
           </Select>
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardContent className="overflow-y-auto max-h-[45vh]">
         <div className="space-y-8">
           {applicants.length === 0 ? (
             <p className="text-sm text-muted-foreground">No recent applicants found.</p>

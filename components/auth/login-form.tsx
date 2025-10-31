@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import axios from "axios";
-import { Phone, Play, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast, Toaster } from "sonner";
 import { PasswordInput } from "../ui/passwordinput";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/card";

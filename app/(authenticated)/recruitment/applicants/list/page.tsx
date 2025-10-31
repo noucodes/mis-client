@@ -61,7 +61,7 @@ export default function Page() {
             </div>
 
             <main className="flex-1 overflow-hidden">
-                <DataTable columns={columns} data={data} />
+                <DataTable columns={columns} data={data} onApplicantAdded={getApplicants} />
             </main>
         </main>
     );

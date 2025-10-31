@@ -20,8 +20,10 @@ interface WithId<T> {
     applicant_id: string;
     application_status: string;
     employment_status: string;
-    full_name: string;
+    first_name: string;
+    last_name: string;
     position_applied: string;
+    examination_code: string;
 }
 
 interface DataTableRowActionsProps<TData> {
@@ -38,6 +40,7 @@ export function DataTableRowActions<TData extends WithId<string>>({
     const [isLoading, setIsLoading] = useState(false);
 
     const applicantId = row.original.applicant_id as string;
+    const examinationId = row.original.examination_code as string;
     const isRejected = row.original.employment_status === 'Rejected';
     const isHired = row.original.application_status === 'Hired';
     const isInitial = row.original.application_status === 'Initial Interview';
@@ -92,7 +95,7 @@ export function DataTableRowActions<TData extends WithId<string>>({
             </ResponsiveDialog>
 
             {/* Applicant details */}
-            <StatusDialog open={isStatusOpen} onOpenChange={setIsStatusOpen} applicantId={applicantId} />
+            <StatusDialog open={isStatusOpen} onOpenChange={setIsStatusOpen} applicantId={applicantId} examinationId={examinationId} />
 
             {/* Dropdown Menu */}
             <DropdownMenu>

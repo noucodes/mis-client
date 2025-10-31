@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import LoadingScreen from "./loading";
 
 export default function HomePage() {
   const router = useRouter();
@@ -16,5 +17,5 @@ export default function HomePage() {
     }
   }, [router]);
 
-  return <p>Loading...</p>;
+  return <LoadingScreen />;
 }

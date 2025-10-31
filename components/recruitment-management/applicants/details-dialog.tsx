@@ -20,7 +20,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Send, Printer, FileDown, Loader2 } from "lucide-react";
+import { Send, Printer, FileDown, Loader2, Download } from "lucide-react";
 import {
     Tabs,
     TabsList,
@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/tabs";
 import { Stepper } from "@/components/ui/stepper";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 interface StepperConfig {
     title: string;
@@ -45,6 +46,7 @@ interface StatusDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     applicantId: string | null;
+    examinationId: string | null;
 }
 
 const statusTypeValues: Record<string, string[]> = {
@@ -52,7 +54,7 @@ const statusTypeValues: Record<string, string[]> = {
     Employment: ["Applicant", "On Hold", "Rejected", "Hired"],
 };
 
-export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogProps) {
+export function StatusDialog({ open, onOpenChange, applicantId, examinationId }: StatusDialogProps) {
     const [comment, setComment] = useState("");
     const [statusType, setStatusType] = useState<string>("Employment");
     const [statusValue, setStatusValue] = useState<string>("Applicant");
@@ -61,7 +63,7 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
     const [personalInfo, setPersonalInfo] = useState<any>(null);
     const [statusHistory, setStatusHistory] = useState<any[]>([]);
     const [examinationData, setExaminationData] = useState<any>(null);
-    const [wpm, setWpm] = useState<string>("");
+    const [downloadingResume, setDownloadingResume] = useState(false);
 
     // Reset state when dialog closes
     useEffect(() => {
@@ -72,7 +74,7 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
             setPersonalInfo(null);
             setStatusHistory([]);
             setExaminationData(null);
-            setWpm("");
+            // setWpm("");
             setError(null);
         }
     }, [open]);
@@ -100,18 +102,10 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
                         Authorization: `Bearer ${token}`,
                     },
                 }),
-                // axios.get(`${baseUrl}/examinations/applicant/${applicantId}`, {
-                //     headers: {
-                //         "Content-Type": "application/json",
-                //         Authorization: `Bearer ${token}`,
-                //     },
-                // }),
             ]);
 
             setPersonalInfo(infoRes.data);
             setStatusHistory(historyRes.data);
-            // setExaminationData(examRes.data);
-            // setWpm(examRes.data?.phaseThreeWpm?.toString() || "");
         } catch (err: any) {
             console.error("Error fetching applicant data:", err);
             setError("Failed to load applicant data. Please try again.");
@@ -168,44 +162,98 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
         }
     };
 
-    // Handle WPM update
-    const handleUpdateWpm = async () => {
-        if (!applicantId || !wpm || isNaN(Number(wpm))) {
-            setError("Please provide a valid WPM value.");
-            return;
-        }
+    // // Handle WPM update
+    // const handleUpdateWpm = async () => {
+    //     if (!applicantId || !wpm || isNaN(Number(wpm))) {
+    //         setError("Please provide a valid WPM value.");
+    //         return;
+    //     }
 
-        setLoading(true);
-        setError(null);
+    //     setLoading(true);
+    //     setError(null);
+    //     try {
+    //         const token = localStorage.getItem("token") || "";
+    //         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+
+    //         await axios.put(
+    //             `${baseUrl}/examinations/${examinationId}`,
+    //             { phaseThreeWpm: Number(wpm) },
+    //             {
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                     Authorization: `Bearer ${token}`,
+    //                 },
+    //             }
+    //         );
+
+    //         // Refresh examination data
+    //         const examRes = await axios.get(`${baseUrl}/examinations/${examinationId}`, {
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //                 Authorization: `Bearer ${token}`,
+    //             },
+    //         });
+    //         setExaminationData(examRes.data);
+    //         setWpm(examRes.data?.phaseThreeWpm?.toString() || "");
+    //     } catch (err: any) {
+    //         console.error("Error updating WPM:", err);
+    //         setError("Failed to update WPM. Please try again.");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    // Handle resume download
+    const handleDownloadResume = async () => {
+        if (!personalInfo?.resume_url) return;
+
+        setDownloadingResume(true);
         try {
-            const token = localStorage.getItem("token") || "";
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+            console.log("Downloading resume from:", personalInfo.resume_url);
 
-            await axios.put(
-                `${baseUrl}/examinations/applicant/${applicantId}`,
-                { phaseThreeWpm: Number(wpm) },
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            // Refresh examination data
-            const examRes = await axios.get(`${baseUrl}/examinations/applicant/${applicantId}`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+            const response = await fetch("/api/download-resume", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ fileUrl: personalInfo.resume_url }),
             });
-            setExaminationData(examRes.data);
-            setWpm(examRes.data?.phaseThreeWpm?.toString() || "");
-        } catch (err: any) {
-            console.error("Error updating WPM:", err);
-            setError("Failed to update WPM. Please try again.");
+
+            console.log("Response status:", response.status);
+            console.log("Response headers:", response.headers);
+
+            if (!response.ok) {
+                // Try to get error message
+                const contentType = response.headers.get("content-type");
+                let errorMessage = "Failed to download resume";
+
+                if (contentType && contentType.includes("application/json")) {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } else {
+                    const errorText = await response.text();
+                    console.error("Error response:", errorText);
+                    errorMessage = `Server error: ${response.status}`;
+                }
+
+                throw new Error(errorMessage);
+            }
+
+            // Get the blob from response
+            const blob = await response.blob();
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${personalInfo.first_name}_${personalInfo.last_name}_Resume.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error: any) {
+            console.error("Error downloading resume:", error);
+            alert(`Failed to download resume: ${error.message}`);
         } finally {
-            setLoading(false);
+            setDownloadingResume(false);
         }
     };
 
@@ -298,14 +346,14 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
                                 <TabsTrigger value="personal">Personal Information</TabsTrigger>
                                 <TabsTrigger value="history">Status History</TabsTrigger>
                                 <TabsTrigger value="current">Update Status</TabsTrigger>
-                                <TabsTrigger value="examination">Examination</TabsTrigger>
+                                <TabsTrigger value="assessment">Assessment</TabsTrigger>
                             </TabsList>
                             <TabsContent value="personal">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-3 flex flex-col items-left">
                                         <div className="grid grid-cols-3 gap-2 w-full max-w-md">
                                             <Label className="text-muted-foreground text-left">Name:</Label>
-                                            <span className="col-span-2 text-left">{personalInfo.full_name}</span>
+                                            <span className="col-span-2 text-left">{personalInfo.last_name}, {personalInfo.first_name}</span>
                                         </div>
                                         <div className="grid grid-cols-3 gap-2 w-full max-w-md">
                                             <Label className="text-muted-foreground text-left">Email:</Label>
@@ -327,6 +375,10 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
                                             <Label className="text-muted-foreground text-left">Date Hired:</Label>
                                             <span className="col-span-2 text-left">{formatDateTime(personalInfo.date_hired)}</span>
                                         </div>
+                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
+                                            <Label className="text-muted-foreground text-left">Job Source:</Label>
+                                            <span className="col-span-2 text-left">{personalInfo.job_source}</span>
+                                        </div>
                                     </div>
                                     <div className="space-y-3 flex flex-col items-left">
                                         <div className="grid grid-cols-3 gap-2 w-full max-w-md">
@@ -338,8 +390,8 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
                                             <span className="col-span-2 text-left">{personalInfo.application_status}</span>
                                         </div>
                                         <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Employment Type:</Label>
-                                            <span className="col-span-2 text-left">{personalInfo.employment_type}</span>
+                                            <Label className="text-muted-foreground text-left">Employment Location:</Label>
+                                            <span className="col-span-2 text-left">{personalInfo.employment_location}</span>
                                         </div>
                                         <div className="grid grid-cols-3 gap-2 w-full max-w-md">
                                             <Label className="text-muted-foreground text-left">Examination Date:</Label>
@@ -348,6 +400,27 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
                                         <div className="grid grid-cols-3 gap-2 w-full max-w-md">
                                             <Label className="text-muted-foreground text-left">Final Interview Date:</Label>
                                             <span className="col-span-2 text-left">{formatExaminationDateTime(personalInfo.final_interview_date)}</span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <Label className="text-muted-foreground text-left">Resume:</Label>
+                                            {personalInfo.resume_url ? (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="col-span-2 justify-start h-8 px-3"
+                                                    onClick={handleDownloadResume}
+                                                    disabled={downloadingResume}
+                                                >
+                                                    {downloadingResume ? (
+                                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                    ) : (
+                                                        <Download className="h-4 w-4 mr-2" />
+                                                    )}
+                                                    {downloadingResume ? "Downloading..." : "Download Resume"}
+                                                </Button>
+                                            ) : (
+                                                <span className="col-span-2 text-left text-muted-foreground">N/A</span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -456,7 +529,7 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
                                     </div>
                                 </div>
                             </TabsContent>
-                            <TabsContent value="examination">
+                            <TabsContent value="assessment">
                                 <div className="space-y-6">
                                     <h3 className="text-base font-bold text-foreground">Examination Results</h3>
                                     {examinationData ? (
@@ -469,7 +542,7 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
                                                 <Label>Phase Two Result</Label>
                                                 <p className="text-sm">{examinationData.phaseTwoResult || "N/A"}</p>
                                             </div>
-                                            <div className="space-y-2">
+                                            {/* <div className="space-y-2">
                                                 <Label>Phase Three - WPM</Label>
                                                 <Input
                                                     type="number"
@@ -481,7 +554,7 @@ export function StatusDialog({ open, onOpenChange, applicantId }: StatusDialogPr
                                                     {loading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : null}
                                                     Update WPM
                                                 </Button>
-                                            </div>
+                                            </div> */}
                                             <div className="space-y-2">
                                                 <Label>Phase Three - Picture</Label>
                                                 {examinationData.phaseThreeImageUrl ? (

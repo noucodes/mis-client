@@ -1,7 +1,7 @@
 "use client";
 import { Play, User, Phone } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { LucideIcon } from "lucide-react";
 
 const ICONS: { Icon: LucideIcon; delay: string; id: string }[] = [
     { Icon: Play, delay: "0s", id: "play" },
@@ -11,7 +11,6 @@ const ICONS: { Icon: LucideIcon; delay: string; id: string }[] = [
 
 const DEFAULT_TEXTS = ["Initializing...", "Preparing...", "Almost ready..."];
 
-// Define CSS animations using a CSS module or Tailwind (here, kept inline for simplicity)
 const styles = `
   @keyframes float {
     0%, 100% { transform: translateY(0); }
@@ -35,13 +34,7 @@ const styles = `
   }
 `;
 
-interface LoadingScreenProps {
-    textArray?: string[];
-}
-
-export default function LoadingScreen({
-    textArray = DEFAULT_TEXTS,
-}: LoadingScreenProps) {
+export default function Loading() {
     const [isMounted, setIsMounted] = useState(false);
     const [currentTextIndex, setCurrentTextIndex] = useState(0);
     const [pulseStates, setPulseStates] = useState<boolean[]>(
@@ -51,19 +44,12 @@ export default function LoadingScreen({
     useEffect(() => {
         setIsMounted(true);
 
-        // Validate textArray
-        if (!textArray || textArray.length === 0) {
-            console.warn("textArray is empty; using default texts");
-            textArray = DEFAULT_TEXTS;
-        }
-
-        // Rotate loading text every 2 seconds
         const textInterval = setInterval(() => {
-            setCurrentTextIndex((prev) => (prev + 1) % textArray.length);
+            setCurrentTextIndex((prev) => (prev + 1) % DEFAULT_TEXTS.length);
         }, 2000);
 
         return () => clearInterval(textInterval);
-    }, [textArray]);
+    }, []);
 
     const handleIconClick = (index: number) => {
         setPulseStates((prev) =>
@@ -73,7 +59,7 @@ export default function LoadingScreen({
             setPulseStates((prev) =>
                 prev.map((state, i) => (i === index ? false : state))
             );
-        }, 300); // Reset after animation duration
+        }, 300);
     };
 
     const handleKeyDown = (
@@ -81,18 +67,13 @@ export default function LoadingScreen({
         index: number
     ) => {
         if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault(); // Prevent default spacebar scrolling
+            e.preventDefault();
             handleIconClick(index);
         }
     };
 
     if (!isMounted) {
-        return (
-            <div
-                className="min-h-screen bg-gray-50 dark:bg-gray-950"
-                aria-hidden="true"
-            />
-        );
+        return <div className="min-h-screen bg-gray-50 dark:bg-gray-950" />;
     }
 
     return (
@@ -132,7 +113,7 @@ export default function LoadingScreen({
                     className="text-base font-semibold uppercase tracking-widest text-gray-600 dark:text-gray-300"
                     aria-live="polite"
                 >
-                    {textArray[currentTextIndex]}
+                    {DEFAULT_TEXTS[currentTextIndex]}
                 </p>
             </div>
         </section>

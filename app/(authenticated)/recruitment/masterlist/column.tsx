@@ -10,7 +10,8 @@ import { DataTableRowActions } from "@/components/recruitment-management/applica
 export type Applicant = {
     applicant_id: string;
     examination_code: string;
-    full_name: string;
+    first_name: string;
+    last_name: string;
     position_applied: string;
     applicant_created: string; // Added to match database field
     employment_status: "Applicant" | "On Hold" | "Rejected" | "Hired";
@@ -19,11 +20,7 @@ export type Applicant = {
 
 export const columns: ColumnDef<Applicant>[] = [
     {
-        accessorKey: "applicant_id",
-        header: "Applicant Id",
-    },
-    {
-        accessorKey: "full_name",
+        accessorKey: "first_name",
         header: ({ column }) => {
             return (
                 <Button
@@ -33,8 +30,18 @@ export const columns: ColumnDef<Applicant>[] = [
                     Name
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
-            );
+            )
         },
+        cell: ({ row }) => {
+            const firstName = row.original.first_name
+            const lastName = row.original.last_name
+            return <Badge variant="secondary">{lastName}, {firstName}</Badge>
+        }
+    },
+    {
+        accessorKey: "last_name",
+        header: () => null,
+        cell: () => null,
     },
     {
         accessorKey: "applicant_created",

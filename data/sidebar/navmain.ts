@@ -216,11 +216,7 @@ export const HRecruitmentData = {
         },
       ],
     },
-    // {
-    //   title: "Calendar",
-    //   url: "#",
-    //   icon: CalendarDays,
-    // },
+    //
     // {
     //   title: "Scheduling",
     //   url: "#",
@@ -236,7 +232,7 @@ export const HRecruitmentData = {
           url: "/recruitment/onboarding/dashboard",
         },
         {
-          title: "Checklist",
+          title: "Onboarding List",
           url: "/recruitment/onboarding/checklist",
         },
       ],
@@ -260,6 +256,12 @@ export const HRecruitmentData = {
           url: "#",
         },
       ],
+    },
+
+    {
+      title: "Assessment",
+      url: "/recruitment/assessment",
+      icon: Layers,
     },
   ],
 };

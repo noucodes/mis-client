@@ -10,10 +10,9 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { FileDown, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import {
     Tabs,
     TabsList,
@@ -24,6 +23,7 @@ import {
 import { SkillSet } from "../details-dialog-skills-set";
 import { PersonalInfo } from "@/components/recruitment-management/details-dialog-personal";
 import { StatusHistory } from "../details-dialog-status-history";
+import { Textarea } from "@/components/ui/textarea";
 
 interface StatusDialogProps {
     open: boolean;
@@ -32,18 +32,40 @@ interface StatusDialogProps {
     examinationId: string | null;
 }
 
-export function StatusDialog({ open, onOpenChange, applicantId, examinationId }: StatusDialogProps) {
+/* --------------------------------------------------------------- */
+/*  Types for the exam result (makes the code type‑safe)          */
+/* --------------------------------------------------------------- */
+interface ExamResult {
+    english_score: number;
+    logical_score: number;
+    computerskill_score: number;
+    customerservice_score: number;
+    total_score: number;
+    submitted_at: string;
+}
+
+export function StatusDialog({
+    open,
+    onOpenChange,
+    applicantId,
+    examinationId,
+}: StatusDialogProps) {
+    /* ----------------------- UI state ----------------------- */
     const [comment, setComment] = useState("");
-    const [statusType, setStatusType] = useState<string>("Employment");
-    const [statusValue, setStatusValue] = useState<string>("Applicant");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [statusType, setStatusType] = useState("Employment");
+    const [statusValue, setStatusValue] = useState("Applicant");
+
+    /* ----------------------- Data state ----------------------- */
     const [personalInfo, setPersonalInfo] = useState<any>(null);
     const [statusHistory, setStatusHistory] = useState<any[]>([]);
-    const [examinationData, setExaminationData] = useState<any>(null);
+    const [examResult, setExamResult] = useState<ExamResult | null>(null);
 
+    /* ----------------------- Loading / error ----------------------- */
+    const [loading, setLoading] = useState(false);          // global loading
+    const [examLoading, setExamLoading] = useState(false); // only exam tab
+    const [error, setError] = useState<string | null>(null);
 
-    // Reset state when dialog closes
+    /* ----------------------- Reset when dialog closes ----------------------- */
     useEffect(() => {
         if (!open) {
             setComment("");
@@ -51,14 +73,13 @@ export function StatusDialog({ open, onOpenChange, applicantId, examinationId }:
             setStatusValue("Applicant");
             setPersonalInfo(null);
             setStatusHistory([]);
-            setExaminationData(null);
-            // setWpm("");
+            setExamResult(null);
             setError(null);
         }
     }, [open]);
 
-    // Memoized fetch function to avoid re-renders
-    const fetchData = useCallback(async () => {
+    /* ----------------------- Fetch applicant + history ----------------------- */
+    const fetchApplicantData = useCallback(async () => {
         if (!applicantId) return;
 
         setLoading(true);
@@ -92,75 +113,49 @@ export function StatusDialog({ open, onOpenChange, applicantId, examinationId }:
         }
     }, [applicantId]);
 
-    // Fetch applicant data when dialog opens or applicantId changes
-    useEffect(() => {
-        fetchData();
-    }, [open, fetchData]);
+    /* ----------------------- Fetch exam result (only when tab is open) ----------------------- */
+    const fetchExamResult = useCallback(async () => {
+        if (!examinationId) return;
 
-    // Handle status submission
-    const handleSubmitStatus = async () => {
-        if (!applicantId || !comment.trim()) {
-            setError("Please provide a comment before submitting.");
-            return;
-        }
-
-        setLoading(true);
+        setExamLoading(true);
         setError(null);
         try {
             const token = localStorage.getItem("token") || "";
             const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
-            await axios.post(
-                `${baseUrl}/status/applicant/${applicantId}`,
-                { status_type: statusType, status_value: statusValue, comment },
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            // Refresh status history
-            const historyRes = await axios.get(`${baseUrl}/status/applicant/${applicantId}`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+            const res = await axios.get(`${baseUrl}/examination/exam/${examinationId}`, {
+                headers: { Authorization: `Bearer ${token}` },
             });
-            setStatusHistory(historyRes.data);
-            setComment("");
-            setStatusType("Employment");
-            setStatusValue("Applicant");
+
+            setExamResult(res.data);
         } catch (err: any) {
-            console.error("Error submitting status:", err);
-            setError("Failed to submit status. Please try again.");
+            console.error("Error loading exam result:", err);
+            setError("Failed to load examination data.");
         } finally {
-            setLoading(false);
+            setExamLoading(false);
         }
+    }, [examinationId]);
+
+    /* ----------------------- Load applicant data when dialog opens ----------------------- */
+    useEffect(() => {
+        if (open) fetchApplicantData();
+    }, [open, fetchApplicantData]);
+
+    /* ----------------------- Helpers ----------------------- */
+    const formatDate = (iso: string) => {
+        if (!iso) return "—";
+        return new Date(iso).toLocaleString("en-PH", {
+            timeZone: "Asia/Manila",
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
     };
 
-    const formatDateTime = (dateString: string): string => {
-        if (!dateString) return "Not yet hired";
-        try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "Invalid Date";
-            return date.toLocaleString("en-PH", {
-                timeZone: "Asia/Manila",
-                month: "short",
-                day: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-            });
-        } catch (error) {
-            return "Invalid Date";
-        }
-    };
-
-
-
+    /* --------------------------------------------------------------- */
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-3xl sm:max-w-3xl max-h-[90vh]">
@@ -172,6 +167,7 @@ export function StatusDialog({ open, onOpenChange, applicantId, examinationId }:
                 </DialogHeader>
 
                 <ScrollArea className="max-h-[calc(90vh-8rem)] pr-6">
+                    {/* ---------- GLOBAL LOADING (applicant data) ---------- */}
                     {loading ? (
                         <div className="flex items-center justify-center py-20">
                             <Loader2 className="animate-spin h-8 w-8 text-muted-foreground" />
@@ -181,76 +177,104 @@ export function StatusDialog({ open, onOpenChange, applicantId, examinationId }:
                             <p className="text-red-500">{error}</p>
                         </div>
                     ) : personalInfo ? (
+                        /* ---------- TABS ---------- */
                         <Tabs defaultValue="personal" className="space-y-6">
                             <TabsList className="grid w-full grid-cols-4">
                                 <TabsTrigger value="personal">Personal Information</TabsTrigger>
                                 <TabsTrigger value="history">Status History</TabsTrigger>
                                 <TabsTrigger value="skills">Skills Set</TabsTrigger>
-                                <TabsTrigger value="assessment">Assessment</TabsTrigger>
+                                <TabsTrigger
+                                    value="assessment"
+                                    onClick={() => {
+                                        // Load exam only when the tab is clicked (lazy)
+                                        if (!examResult && examinationId) fetchExamResult();
+                                    }}
+                                >
+                                    Assessment
+                                </TabsTrigger>
                             </TabsList>
+
+                            {/* ---------- Personal ---------- */}
                             <TabsContent value="personal">
                                 <PersonalInfo personalInfo={personalInfo} />
                             </TabsContent>
+
+                            {/* ---------- History ---------- */}
                             <TabsContent value="history">
                                 <StatusHistory personalInfo={personalInfo} statusHistory={statusHistory} />
                             </TabsContent>
+
+                            {/* ---------- Skills ---------- */}
                             <TabsContent value="skills">
                                 <SkillSet />
                             </TabsContent>
+
+                            {/* ---------- Assessment ---------- */}
                             <TabsContent value="assessment">
-                                <div className="space-y-6">
-                                    <h3 className="text-base font-bold text-foreground">Assessment Results</h3>
-                                    {examinationData ? (
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label>Phase One Result</Label>
-                                                <p className="text-sm">{examinationData.phaseOneResult || "N/A"}</p>
+                                <div className="space-y-6 relative">
+                                    <h3 className="text-base font-bold text-foreground">
+                                        Assessment Results
+                                    </h3>
+
+                                    {/* Exam‑specific spinner overlay */}
+                                    {examLoading && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                                            <Loader2 className="animate-spin h-6 w-6 text-muted-foreground" />
+                                        </div>
+                                    )}
+
+                                    {examResult ? (
+                                        <div className="space-y-6 py-4">
+                                            {/* Scores */}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <Label>English</Label>
+                                                    <p className="text-2xl font-semibold">
+                                                        {examResult.english_score}
+                                                    </p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label>Logical Reasoning</Label>
+                                                    <p className="text-2xl font-semibold">
+                                                        {examResult.logical_score}
+                                                    </p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label>Computer Skills</Label>
+                                                    <p className="text-2xl font-semibold">
+                                                        {examResult.computerskill_score}
+                                                    </p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label>Customer Service</Label>
+                                                    <p className="text-2xl font-semibold">
+                                                        {examResult.customerservice_score}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label>Phase Two Result</Label>
-                                                <p className="text-sm">{examinationData.phaseTwoResult || "N/A"}</p>
-                                            </div>
-                                            {/* <div className="space-y-2">
-                                                <Label>Phase Three - WPM</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={wpm}
-                                                    onChange={(e) => setWpm(e.target.value)}
-                                                    placeholder="Enter WPM"
-                                                />
-                                                <Button onClick={handleUpdateWpm} disabled={loading}>
-                                                    {loading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : null}
-                                                    Update WPM
-                                                </Button>
-                                            </div> */}
-                                            <div className="space-y-2">
-                                                <Label>Phase Three - Picture</Label>
-                                                {examinationData.phaseThreeImageUrl ? (
-                                                    <img
-                                                        src={examinationData.phaseThreeImageUrl}
-                                                        alt="Phase Three Picture"
-                                                        className="max-w-full h-auto rounded-md"
-                                                    />
-                                                ) : (
-                                                    <p className="text-sm text-muted-foreground">No picture available.</p>
-                                                )}
-                                            </div>
-                                            <div className="space-y-2 col-span-2">
-                                                <Label>Phase Four - Downloadable File</Label>
-                                                {examinationData.phaseFourFileUrl ? (
-                                                    <Button variant="outline" asChild>
-                                                        <a href={examinationData.phaseFourFileUrl} download>
-                                                            <FileDown className="h-4 w-4 mr-2" />
-                                                            Download Phase Four
-                                                        </a>
-                                                    </Button>
-                                                ) : (
-                                                    <p className="text-sm text-muted-foreground">No file available.</p>
-                                                )}
+
+                                            {/* Total & Submitted */}
+                                            <div className="border-t pt-4 space-y-3">
+                                                <div className="flex justify-between items-center">
+                                                    <Label className="text-lg">Total Score</Label>
+                                                    <p className="text-3xl font-bold text-primary">
+                                                        {examResult.total_score}
+                                                    </p>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <Label>Submitted At</Label>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {formatDate(examResult.submitted_at)}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     ) : (
-                                        <p className="text-sm text-muted-foreground">No examination data available.</p>
+                                        <div className="flex items-center justify-center py-20">
+                                            <p className="text-muted-foreground">
+                                                No examination data found.
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                             </TabsContent>
@@ -261,6 +285,7 @@ export function StatusDialog({ open, onOpenChange, applicantId, examinationId }:
                         </div>
                     )}
                 </ScrollArea>
+
             </DialogContent>
         </Dialog>
     );

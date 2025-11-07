@@ -18,7 +18,6 @@ const stages = [
     "Examination",
     "Final Interview",
     "Job Offer",
-    "Contract Signing",
     "Hired",
 ];
 

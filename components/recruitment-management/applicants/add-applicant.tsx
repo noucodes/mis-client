@@ -265,7 +265,7 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
                             </div>
                         </div>
 
-                        {/* Position & Employment Type */}
+                        {/* Position & Employment Location */}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="grid gap-3">
                                 <Label>Position Applied</Label>
@@ -291,7 +291,7 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
                             </div>
 
                             <div className="grid gap-3">
-                                <Label>Employment Type</Label>
+                                <Label>Employment Location</Label>
                                 <Select
                                     value={formData.employment_type}
                                     onValueChange={handleSelectChange("employment_type")}

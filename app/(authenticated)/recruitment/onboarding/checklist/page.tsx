@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/components/recruitment-management/onboarding/data-table";
 import { columns, type Applicant } from "@/components/recruitment-management/onboarding/columns";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import axios from "axios";
 
 async function getData(): Promise<Applicant[]> {
@@ -55,7 +54,7 @@ async function getData(): Promise<Applicant[]> {
 
                     return {
                         id: applicant.applicant_id,
-                        name: applicant.full_name,
+                        name: applicant.first_name + " " + applicant.last_name,
                         email: applicant.email,
                         progress,
                         completedTasks,
@@ -68,7 +67,7 @@ async function getData(): Promise<Applicant[]> {
                     );
                     return {
                         id: applicant.applicant_id,
-                        name: applicant.full_name,
+                        name: applicant.first_name + " " + applicant.last_name,
                         email: applicant.email,
                         progress: 0,
                         completedTasks: 0,
@@ -107,13 +106,9 @@ export default function Page() {
     return (
         <main className="space-y-8 overflow-x-hidden px-8 py-2">
             <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Onboarding</span>
-                    <span>/</span>
-                    <span>Checklist</span>
-                </div>
+
                 <h1 className="text-3xl font-bold text-balance">
-                    Checklist
+                    Onboarding List
                 </h1>
                 <p className="text-muted-foreground text-balance">
                     Checklist for all applicants

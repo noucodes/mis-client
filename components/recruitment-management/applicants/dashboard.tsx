@@ -105,7 +105,7 @@ export function MyKanbanBoard() {
                     { id: "2", title: "Examination", color: "red" },
                     { id: "3", title: "Final Interview", color: "yellow" },
                     { id: "4", title: "Job Offer", color: "green" },
-                    { id: "5", title: "Contract Signing", color: "blue" },
+                    { id: "5", title: "Hired", color: "blue" },
                 ];
 
                 possibleStatuses.forEach((status) => {

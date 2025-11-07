@@ -1,4 +1,6 @@
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import CurrentSystemTime from "@/components/system-time-display";
+import SystemTimeDisplay from "@/components/system-time-display";
 import { ModeToggle } from "@/components/toggle-mode";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink } from "@/components/ui/breadcrumb";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -17,7 +19,12 @@ export default function AuthenticatedLayout({
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
           </div>
-          <ModeToggle />
+
+          <div className="flex gap-4 items-center">
+            <CurrentSystemTime />
+            <ModeToggle />
+
+          </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 px-4 lg:px-8">
           {children}

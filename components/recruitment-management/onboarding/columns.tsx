@@ -19,10 +19,12 @@ export type Applicant = {
 
 export const columns: ColumnDef<Applicant>[] = [
     {
-        accessorKey: "name",
+        id: "name",
         header: "Name",
         cell: ({ row }) => {
-            const name = row?.getValue("name") as string
+            // 2. Access the 'name' property directly
+            const name = row.original.name
+
             return <div className="font-medium">{name || "N/A"}</div>
         },
     },
@@ -30,6 +32,7 @@ export const columns: ColumnDef<Applicant>[] = [
         accessorKey: "email",
         header: "Email",
         cell: ({ row }) => {
+            // This works because the accessorKey AND getValue() param are the same
             const email = row?.getValue("email") as string
             return <div className="text-muted-foreground">{email || "N/A"}</div>
         },

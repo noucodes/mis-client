@@ -13,7 +13,7 @@ export type Applicant = {
     full_name: string
     position_applied: string
     employment_status: "Applicant" | "On Hold" | "Rejected" | "Hired"
-    application_status: "Initial Interview" | "Examination" | "Final Interview" | "Job Offer" | "Contract Signing" | "Reject"
+    application_status: "Initial Interview" | "Examination" | "Final Interview" | "Job Offer" | "Hired" | "Reject"
 }
 
 export const columns: ColumnDef<Applicant>[] = [
@@ -54,7 +54,7 @@ export const columns: ColumnDef<Applicant>[] = [
                             ? "bg-yellow-500"
                             : status === "Job Offer"
                                 ? "bg-green-500"
-                                : status === "Contract Signing"
+                                : status === "Hired"
                                     ? "bg-blue-500"
                                     : status === "Reject"
                                         ? "bg-red-500"

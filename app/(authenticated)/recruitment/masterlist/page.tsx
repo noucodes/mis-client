@@ -52,7 +52,7 @@ export default function Page() {
         <main className="space-y-8 overflow-x-hidden">
             <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Masterlist</span>
+                    <span>Applicants Masterlist</span>
                 </div>
                 <h1 className="text-3xl font-bold text-balance">Masterlist</h1>
                 <p className="text-muted-foreground text-balance">

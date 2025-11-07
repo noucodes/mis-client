@@ -3,10 +3,10 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import clsx from "clsx";
 
 export type StatusHistory = {
     status_id: string;
+    name: string;
     applicant_id: string;
     status_type: string;
     status_value: string;
@@ -38,19 +38,16 @@ const getStatusColor = (status: string) => {
 
 export const columns: ColumnDef<StatusHistory>[] = [
     {
-        accessorKey: "status_type",
-        header: "Status Type",
+        accessorKey: "name",
+        header: "Applicant Name",
         cell: ({ row }) => {
-            const statusType = row.getValue("status_type") as string;
+            const name = row.getValue("name") as string;
             return (
-                <Badge
-                    variant="secondary"
-                    className="rounded-full px-3 py-1 text-xs font-medium bg-muted/40"
-                >
-                    {statusType}
-                </Badge>
+                <span className="font-medium">
+                    {name}
+                </span>
             );
-        },
+        }
     },
     {
         accessorKey: "status_value",

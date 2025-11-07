@@ -13,34 +13,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Send, Printer, FileDown, Loader2, Download } from "lucide-react";
+import { FileDown, Loader2 } from "lucide-react";
 import {
     Tabs,
     TabsList,
     TabsTrigger,
     TabsContent,
 } from "@/components/ui/tabs";
-import { Stepper } from "@/components/ui/stepper";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
 
-interface StepperConfig {
-    title: string;
-    description: string;
-    steps: Array<{
-        id: string;
-        label: string;
-        description: string;
-    }>;
-    currentStep: number;
-}
+import { SkillSet } from "../details-dialog-skills-set";
+import { PersonalInfo } from "@/components/recruitment-management/details-dialog-personal";
+import { StatusHistory } from "../details-dialog-status-history";
 
 interface StatusDialogProps {
     open: boolean;
@@ -48,11 +31,6 @@ interface StatusDialogProps {
     applicantId: string | null;
     examinationId: string | null;
 }
-
-const statusTypeValues: Record<string, string[]> = {
-    Application: ["Initial Interview", "Examination", "Final Interview", "Job Offer", "Contract Signing", "Hired"],
-    Employment: ["Applicant", "On Hold", "Rejected", "Hired"],
-};
 
 export function StatusDialog({ open, onOpenChange, applicantId, examinationId }: StatusDialogProps) {
     const [comment, setComment] = useState("");
@@ -63,7 +41,7 @@ export function StatusDialog({ open, onOpenChange, applicantId, examinationId }:
     const [personalInfo, setPersonalInfo] = useState<any>(null);
     const [statusHistory, setStatusHistory] = useState<any[]>([]);
     const [examinationData, setExaminationData] = useState<any>(null);
-    const [downloadingResume, setDownloadingResume] = useState(false);
+
 
     // Reset state when dialog closes
     useEffect(() => {
@@ -162,106 +140,6 @@ export function StatusDialog({ open, onOpenChange, applicantId, examinationId }:
         }
     };
 
-    // // Handle WPM update
-    // const handleUpdateWpm = async () => {
-    //     if (!applicantId || !wpm || isNaN(Number(wpm))) {
-    //         setError("Please provide a valid WPM value.");
-    //         return;
-    //     }
-
-    //     setLoading(true);
-    //     setError(null);
-    //     try {
-    //         const token = localStorage.getItem("token") || "";
-    //         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
-
-    //         await axios.put(
-    //             `${baseUrl}/examinations/${examinationId}`,
-    //             { phaseThreeWpm: Number(wpm) },
-    //             {
-    //                 headers: {
-    //                     "Content-Type": "application/json",
-    //                     Authorization: `Bearer ${token}`,
-    //                 },
-    //             }
-    //         );
-
-    //         // Refresh examination data
-    //         const examRes = await axios.get(`${baseUrl}/examinations/${examinationId}`, {
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //                 Authorization: `Bearer ${token}`,
-    //             },
-    //         });
-    //         setExaminationData(examRes.data);
-    //         setWpm(examRes.data?.phaseThreeWpm?.toString() || "");
-    //     } catch (err: any) {
-    //         console.error("Error updating WPM:", err);
-    //         setError("Failed to update WPM. Please try again.");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
-    // Handle resume download
-    const handleDownloadResume = async () => {
-        if (!personalInfo?.resume_url) return;
-
-        setDownloadingResume(true);
-        try {
-            console.log("Downloading resume from:", personalInfo.resume_url);
-
-            const response = await fetch("/api/download-resume", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fileUrl: personalInfo.resume_url }),
-            });
-
-            console.log("Response status:", response.status);
-            console.log("Response headers:", response.headers);
-
-            if (!response.ok) {
-                // Try to get error message
-                const contentType = response.headers.get("content-type");
-                let errorMessage = "Failed to download resume";
-
-                if (contentType && contentType.includes("application/json")) {
-                    const errorData = await response.json();
-                    errorMessage = errorData.error || errorMessage;
-                } else {
-                    const errorText = await response.text();
-                    console.error("Error response:", errorText);
-                    errorMessage = `Server error: ${response.status}`;
-                }
-
-                throw new Error(errorMessage);
-            }
-
-            // Get the blob from response
-            const blob = await response.blob();
-
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `${personalInfo.first_name}_${personalInfo.last_name}_Resume.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        } catch (error: any) {
-            console.error("Error downloading resume:", error);
-            alert(`Failed to download resume: ${error.message}`);
-        } finally {
-            setDownloadingResume(false);
-        }
-    };
-
-    const handleStatusTypeChange = (type: string) => {
-        setStatusType(type);
-        setStatusValue(statusTypeValues[type][0]);
-    };
-
     const formatDateTime = (dateString: string): string => {
         if (!dateString) return "Not yet hired";
         try {
@@ -281,45 +159,7 @@ export function StatusDialog({ open, onOpenChange, applicantId, examinationId }:
         }
     };
 
-    const formatExaminationDateTime = (dateString: string): string => {
-        if (!dateString) return "No Date Found";
-        try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return "Invalid Date";
-            return date.toLocaleString("en-PH", {
-                month: "short",
-                day: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-            });
-        } catch (error) {
-            return "Invalid Date";
-        }
-    };
 
-    const handlePrint = () => window.print();
-    const handleSaveAsPDF = () => alert("PDF generation would be implemented here");
-
-    // Dynamic stepper configuration based on fetched applicant data
-    const stepperConfigs: StepperConfig[] = [
-        {
-            title: "Application Status",
-            description: "Your application progress",
-            steps: [
-                { id: "initial", label: "Initial Interview", description: "First stage of the interview process" },
-                { id: "examination", label: "Examination", description: "Assessment of skills and qualifications" },
-                { id: "final", label: "Final Interview", description: "Final evaluation with senior team members" },
-                { id: "offer", label: "Job Offer", description: "Offer extended to the candidate" },
-                { id: "contract-signing", label: "Contract Signing", description: "Finalizing employment contract" },
-                { id: "hired", label: "Hired", description: "Candidate has been hired" },
-            ],
-            currentStep: personalInfo
-                ? statusTypeValues.Application.indexOf(personalInfo.application_status) || 1
-                : 1,
-        },
-    ];
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -345,193 +185,21 @@ export function StatusDialog({ open, onOpenChange, applicantId, examinationId }:
                             <TabsList className="grid w-full grid-cols-4">
                                 <TabsTrigger value="personal">Personal Information</TabsTrigger>
                                 <TabsTrigger value="history">Status History</TabsTrigger>
-                                <TabsTrigger value="current">Update Status</TabsTrigger>
+                                <TabsTrigger value="skills">Skills Set</TabsTrigger>
                                 <TabsTrigger value="assessment">Assessment</TabsTrigger>
                             </TabsList>
                             <TabsContent value="personal">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-3 flex flex-col items-left">
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Name:</Label>
-                                            <span className="col-span-2 text-left">{personalInfo.last_name}, {personalInfo.first_name}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Email:</Label>
-                                            <span className="col-span-2 text-left">{personalInfo.email}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Position Applied:</Label>
-                                            <span className="col-span-2 text-left">{personalInfo.position_applied}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Phone:</Label>
-                                            <span className="col-span-2 text-left">{personalInfo.phone}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Referrer:</Label>
-                                            <span className="col-span-2 text-left">{personalInfo.referrer || "N/A"}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Date Hired:</Label>
-                                            <span className="col-span-2 text-left">{formatDateTime(personalInfo.date_hired)}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Job Source:</Label>
-                                            <span className="col-span-2 text-left">{personalInfo.job_source}</span>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-3 flex flex-col items-left">
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Employment Status:</Label>
-                                            <span className="col-span-2 text-left">{personalInfo.employment_status}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Application Status:</Label>
-                                            <span className="col-span-2 text-left">{personalInfo.application_status}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Employment Location:</Label>
-                                            <span className="col-span-2 text-left">{personalInfo.employment_location}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Examination Date:</Label>
-                                            <span className="col-span-2 text-left">{formatExaminationDateTime(personalInfo.final_interview_date)}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2 w-full max-w-md">
-                                            <Label className="text-muted-foreground text-left">Final Interview Date:</Label>
-                                            <span className="col-span-2 text-left">{formatExaminationDateTime(personalInfo.final_interview_date)}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <Label className="text-muted-foreground text-left">Resume:</Label>
-                                            {personalInfo.resume_url ? (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="col-span-2 justify-start h-8 px-3"
-                                                    onClick={handleDownloadResume}
-                                                    disabled={downloadingResume}
-                                                >
-                                                    {downloadingResume ? (
-                                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                                    ) : (
-                                                        <Download className="h-4 w-4 mr-2" />
-                                                    )}
-                                                    {downloadingResume ? "Downloading..." : "Download Resume"}
-                                                </Button>
-                                            ) : (
-                                                <span className="col-span-2 text-left text-muted-foreground">N/A</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
+                                <PersonalInfo personalInfo={personalInfo} />
                             </TabsContent>
                             <TabsContent value="history">
-                                <div className="space-y-6">
-                                    {stepperConfigs.map((stepper, index) => (
-                                        <div key={index} className="space-y-4">
-                                            <div className="space-y-1">
-                                                <h3 className="text-base font-bold text-foreground">{stepper.title}</h3>
-                                                <p className="text-xs text-gray-500">{stepper.description}</p>
-                                            </div>
-                                            <Stepper
-                                                steps={stepper.steps}
-                                                currentStep={stepper.currentStep}
-                                                orientation="horizontal"
-                                                className="w-full"
-                                            />
-                                        </div>
-                                    ))}
-                                    <div className="space-y-4">
-                                        <h3 className="text-base font-bold text-foreground">Status History Timeline</h3>
-                                        {statusHistory.length > 0 ? (
-                                            <ul className="space-y-2">
-                                                {statusHistory.map((status, index) => (
-                                                    <li key={index} className="border-l-2 border-muted pl-4">
-                                                        <p className="text-sm font-medium">
-                                                            {status.status_type}: {status.status_value}
-                                                        </p>
-                                                        <p className="text-xs text-muted-foreground">{formatDateTime(status.status_created)}</p>
-                                                        <p className="text-sm">{status.comment}</p>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground">No status history available.</p>
-                                        )}
-                                    </div>
-                                </div>
+                                <StatusHistory personalInfo={personalInfo} statusHistory={statusHistory} />
                             </TabsContent>
-                            <TabsContent value="current">
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="status-type">Status Type</Label>
-                                            <Select value={statusType} onValueChange={handleStatusTypeChange}>
-                                                <SelectTrigger id="status-type">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {Object.keys(statusTypeValues).map((type) => (
-                                                        <SelectItem key={type} value={type}>
-                                                            {type}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="status-value">Status Value</Label>
-                                            <Select value={statusValue} onValueChange={setStatusValue}>
-                                                <SelectTrigger id="status-value">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {statusTypeValues[statusType].map((value) => (
-                                                        <SelectItem key={value} value={value}>
-                                                            {value}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="comment">Comment</Label>
-                                        <div className="relative">
-                                            <Textarea
-                                                id="comment"
-                                                placeholder="Enter your status comment here..."
-                                                value={comment}
-                                                onChange={(e) => setComment(e.target.value)}
-                                                rows={4}
-                                                className="resize-none pr-12"
-                                            />
-                                            <Button
-                                                size="icon"
-                                                className="absolute bottom-2 left-2"
-                                                onClick={handleSubmitStatus}
-                                                disabled={loading}
-                                            >
-                                                <Send className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    {error && <p className="text-red-500 text-sm">{error}</p>}
-                                    <div className="flex gap-2 pt-2">
-                                        <Button variant="outline" onClick={handlePrint} className="flex-1 bg-transparent">
-                                            <Printer className="h-4 w-4 mr-2" />
-                                            Print
-                                        </Button>
-                                        <Button variant="outline" onClick={handleSaveAsPDF} className="flex-1 bg-transparent">
-                                            <FileDown className="h-4 w-4 mr-2" />
-                                            Save as PDF
-                                        </Button>
-                                    </div>
-                                </div>
+                            <TabsContent value="skills">
+                                <SkillSet />
                             </TabsContent>
                             <TabsContent value="assessment">
                                 <div className="space-y-6">
-                                    <h3 className="text-base font-bold text-foreground">Examination Results</h3>
+                                    <h3 className="text-base font-bold text-foreground">Assessment Results</h3>
                                     {examinationData ? (
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">

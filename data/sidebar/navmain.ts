@@ -193,7 +193,7 @@ export const HRecruitmentData = {
       icon: LayoutDashboard,
     },
     {
-      title: "Masterlist",
+      title: "Applicants Masterlist",
       url: "/recruitment/masterlist",
       icon: List,
     },

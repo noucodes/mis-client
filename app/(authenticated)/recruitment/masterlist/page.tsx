@@ -1,8 +1,6 @@
 "use client";
 
 import React from "react";
-import { Kanban } from "@/components/recruitment-management/applicants/dashboard";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Applicant, columns } from "./column";
 import { DataTable } from "@/components/recruitment-management/applicants/application-data-table";
 

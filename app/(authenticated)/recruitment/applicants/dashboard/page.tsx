@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Dashboard } from "@/components/recruitment-management/onboarding/dashboard";
+import { Dashboard } from "@/components/recruitment-management/applicants/dashboard";
 
 export default function Page() {
     return (

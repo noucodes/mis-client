@@ -90,7 +90,6 @@ export function RecentApplicants() {
             applicants.map((applicant) => (
               <div key={applicant.applicant_id} className="flex items-center">
                 <Avatar className="h-9 w-9 border">
-                  <AvatarFallback>{applicant.full_name[0]}</AvatarFallback>
                 </Avatar>
                 <div className="ml-4 space-y-1">
                   <p className="text-sm font-medium leading-none">{applicant.full_name}</p>

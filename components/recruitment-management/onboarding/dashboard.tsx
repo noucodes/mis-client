@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import {
   TrendingUp,
@@ -9,15 +10,15 @@ import {
   Zap,
 } from "lucide-react";
 import {
-  AreaChart,
   Area,
-  XAxis,
+  AreaChart,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
+  XAxis,
   PieChart,
   Pie,
   Cell,
+  ResponsiveContainer,
+  Tooltip,
 } from "recharts";
 import {
   Card,
@@ -69,7 +70,7 @@ const recentOnboardingActivities = [
   { id: 7, name: "Emma Williams", task: "Documents Submitted", timeAgo: "2 hours ago" },
 ];
 
-// Metric Card Component
+// Metric Card
 function MetricCard({
   icon: Icon,
   title,
@@ -113,50 +114,10 @@ function MetricCard({
 export default function Dashboard() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  // Custom active shape with glow + scale
-  const renderActiveShape = (props: any) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
-
-    return (
-      <g>
-        <defs>
-          <filter id={`glow-${fill.replace("#", "")}`}>
-            <feGaussianBlur stdDeviation="10" result="coloredBlur" />
-            <feOffset dx="0" dy="0" result="offsetblur" />
-            <feFlood floodColor={fill} floodOpacity="0.6" />
-            <feComposite in2="offsetblur" operator="in" />
-            <feMerge>
-              <feMergeNode />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        <path
-          d={`M${cx},${cy}
-             L${cx + Math.cos((startAngle * Math.PI) / 180) * outerRadius},${cx + Math.sin((startAngle * Math.PI) / 180) * outerRadius}
-             A${outerRadius},${outerRadius} 0 ${endAngle - startAngle > 180 ? 1 : 0},1
-             ${cx + Math.cos((endAngle * Math.PI) / 180) * outerRadius},${cy + Math.sin((endAngle * Math.PI) / 180) * outerRadius}
-             L${cx + Math.cos((endAngle * Math.PI) / 180) * innerRadius},${cy + Math.sin((endAngle * Math.PI) / 180) * innerRadius}
-             A${innerRadius},${innerRadius} 0 ${endAngle - startAngle > 180 ? 1 : 0},0
-             ${cx + Math.cos((startAngle * Math.PI) / 180) * innerRadius},${cy + Math.sin((startAngle * Math.PI) / 180) * innerRadius}
-             Z`}
-          fill={fill}
-          stroke={fill}
-          strokeWidth={4}
-          style={{
-            filter: `url(#glow-${fill.replace("#", "")})`,
-            transform: "scale(1.08)",
-            transformOrigin: `${cx}px ${cy}px`,
-            transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
-        />
-      </g>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 pt-0">
-      {/* Top Metrics */}
+      
+      {/* Top Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         <MetricCard icon={CheckCircle} title="Completed Tasks" value="342" change="+12.5% this month" changeType="positive" />
         <MetricCard icon={Clock} title="In Progress" value="28" change="+2 new today" changeType="positive" />
@@ -168,15 +129,18 @@ export default function Dashboard() {
 
       {/* Hires Chart + Recent Activities */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Hires per Month */}
+        {/* Hires Chart */}
         <Card className="border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl md:text-2xl">Hires per Month</CardTitle>
             <CardDescription className="text-base md:text-lg">New hires this year</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart
+                data={chartData}
+                margin={{ top: 0, right: 30, left: 20, bottom: 30 }}
+              >
                 <defs>
                   <linearGradient id="fillHires" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.8} />
@@ -184,7 +148,15 @@ export default function Dashboard() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" />
+                <XAxis 
+                  dataKey="month" 
+                  tickLine={false} 
+                  tickMargin={10} 
+                  interval={0} 
+                  angle={-25} 
+                  textAnchor="end" 
+                  height={40} 
+                />
                 <Tooltip />
                 <Area
                   type="monotone"
@@ -193,6 +165,8 @@ export default function Dashboard() {
                   strokeWidth={3}
                   fillOpacity={1}
                   fill="url(#fillHires)"
+                  dot={{ fill: "#0EA5E9" }}
+                  activeDot={{ r: 6 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -226,7 +200,7 @@ export default function Dashboard() {
                               {a.name.split(" ").map((n) => n[0]).join("")}
                             </AvatarFallback>
                           </Avatar>
-                          <div>
+                          <div className="flex flex-col justify-center">
                             <div className="font-medium text-base">{a.name}</div>
                             <div className="text-sm text-muted-foreground">
                               {a.name.toLowerCase().replace(" ", ".")}@company.com
@@ -235,7 +209,7 @@ export default function Dashboard() {
                         </div>
                       </td>
                       <td className="py-3 text-base">{a.task}</td>
-                      <td className="py-3">
+                      <td className="py-3 text-base">
                         <span className="text-emerald-600 font-medium">Completed</span>
                       </td>
                       <td className="py-3 text-sm text-muted-foreground">{a.timeAgo}</td>
@@ -248,75 +222,78 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Bottom Row */}
+      {/* Bottom Row: Onboarding Status + Task Completion */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Onboarding Status - FIXED & BEAUTIFUL */}
-        <Card className="hover:shadow-md transition-shadow overflow-hidden">
+
+        {/* Onboarding Status with glow on hover */}
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="text-center pb-5">
             <CardTitle className="text-xl md:text-2xl">Onboarding Status</CardTitle>
             <CardDescription className="text-base md:text-lg">
               Current progress of all new hires
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center pb-8">
-            <ResponsiveContainer width="100%" height={300}>
+          <CardContent className="flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={180}>
               <PieChart>
                 <Pie
                   data={onboardingStats}
                   cx="50%"
                   cy="50%"
-                  innerRadius={70}
-                  outerRadius={110}
-                  paddingAngle={6}
+                  innerRadius={55}
+                  outerRadius={80}
+                  paddingAngle={5}
                   dataKey="value"
-                  activeIndex={activeIndex ?? undefined}
-                  activeShape={renderActiveShape}
-                  onMouseEnter={(_: any, index: number) => setActiveIndex(index)}
+                  onMouseEnter={(_, index) => setActiveIndex(index)}
                   onMouseLeave={() => setActiveIndex(null)}
                 >
-                  {onboardingStats.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={entry.color}
-                      stroke={entry.color}
-                      strokeWidth={3}
-                      style={{
-                        transition: "all 0.4s ease",
-                        opacity: activeIndex === null || activeIndex === index ? 1 : 0.6,
-                        cursor: "pointer",
-                      }}
-                    />
-                  ))}
+                  {onboardingStats.map((entry, index) => {
+                    const isActive = index === activeIndex;
+                    return (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.color}
+                        cursor="pointer"
+                        stroke={entry.color}
+                        strokeWidth={isActive ? 6 : 0} 
+                        strokeOpacity={0} 
+                        style={{
+                          filter: isActive ? "drop-shadow(0 0 10px " + entry.color + ")" : undefined,
+                          transition: "all 0.3s ease-out",
+                        }}
+                      />
+                    );
+                  })}
                 </Pie>
-                <Tooltip />
               </PieChart>
             </ResponsiveContainer>
 
-            {/* Interactive Legend */}
-            <div className="grid grid-cols-3 gap-8 mt-8 w-full max-w-lg">
+            <div className="grid grid-cols-3 gap-6 mt-4 w-full max-w-md text-base">
               {onboardingStats.map((s, index) => {
                 const isActive = index === activeIndex;
                 return (
                   <div
                     key={s.name}
-                    className="text-center cursor-pointer"
+                    className={`text-center cursor-pointer transition-transform duration-200 ${
+                      isActive ? "scale-105" : ""
+                    }`}
                     onMouseEnter={() => setActiveIndex(index)}
                     onMouseLeave={() => setActiveIndex(null)}
                   >
                     <div
-                      className="text-4xl font-bold transition-all duration-300"
+                      className="text-2xl md:text-3xl font-bold"
                       style={{
                         color: s.color,
-                        textShadow: isActive ? `0 0 24px ${s.color}80` : "none",
-                        transform: isActive ? "translateY(-6px)" : "translateY(0)",
+                        opacity: isActive ? 1 : 0.7,
                       }}
                     >
                       {s.value}
                     </div>
                     <div
-                      className="mt-2 text-sm font-medium transition-colors"
+                      className="text-sm md:text-base mt-1"
                       style={{
-                        color: isActive ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                        fontWeight: isActive ? 600 : 400,
+                        color: isActive ? "#000" : "#6b7280",
                       }}
                     >
                       {s.name}
@@ -332,20 +309,18 @@ export default function Dashboard() {
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="text-xl md:text-2xl">Task Completion Rate</CardTitle>
-            <CardDescription className="text-base md:text-lg">
-              Percentage of completed onboarding tasks
-            </CardDescription>
+            <CardDescription className="text-base md:text-lg">Percentage of completed onboarding tasks</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-4">
             {taskCompletion.map((t) => (
               <div key={t.task} className="flex items-center gap-4">
-                <span className="text-base font-medium text-muted-foreground w-40">
+                <span className="text-base font-medium text-muted-foreground w-36">
                   {t.task}
                 </span>
                 <div className="flex-1 flex items-center gap-3">
-                  <div className="flex-1 bg-muted rounded-full h-3">
+                  <div className="flex-1 bg-muted rounded-full h-2.5">
                     <div
-                      className="bg-emerald-500 h-3 rounded-full transition-all duration-1000 ease-out"
+                      className="bg-emerald-500 h-2.5 rounded-full transition-all duration-1000 ease-out"
                       style={{ width: `${t.completed}%` }}
                     />
                   </div>

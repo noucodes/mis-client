@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -29,151 +29,100 @@ import {
   Legend,
   Sector,
 } from "recharts";
-
-// === Data ===
-const sourcesData = [
-  { name: "LinkedIn", value: 38 },
-  { name: "Company Website", value: 25 },
-  { name: "Job Board", value: 18 },
-  { name: "Referral", value: 12 },
-  { name: "Others", value: 7 },
-];
+import axios from "axios";
+import { formatDistanceToNow } from "date-fns";
 
 const COLORS = ["#0ea5e9", "#8b5cf6", "#10b981", "#f59e0b", "#6b7280"];
 
-type Year = "2024" | "2025" | "2026";
+interface DashboardMetrics {
+  newApplicantsThisMonth: { count: number; change: string };
+  rejectedThisMonth: { count: number; change: string };
+  totalApplicants: number;
+  conversionRate: number | string;
+}
 
-const dataByYear: Record<
-  Year,
-  Array<{ month: string; hired: number; rejected: number }>
-> = {
-  "2024": [
-    { month: "Jan", hired: 8, rejected: 35 },
-    { month: "Feb", hired: 12, rejected: 38 },
-    { month: "Mar", hired: 14, rejected: 42 },
-    { month: "Apr", hired: 18, rejected: 30 },
-    { month: "May", hired: 22, rejected: 28 },
-    { month: "Jun", hired: 25, rejected: 26 },
-    { month: "Jul", hired: 28, rejected: 24 },
-    { month: "Aug", hired: 32, rejected: 22 },
-    { month: "Sep", hired: 36, rejected: 20 },
-    { month: "Oct", hired: 38, rejected: 23 },
-    { month: "Nov", hired: 40, rejected: 25 },
-    { month: "Dec", hired: 44, rejected: 21 },
-  ],
-  "2025": [
-    { month: "Jan", hired: 12, rejected: 28 },
-    { month: "Feb", hired: 19, rejected: 32 },
-    { month: "Mar", hired: 15, rejected: 41 },
-    { month: "Apr", hired: 22, rejected: 18 },
-    { month: "May", hired: 28, rejected: 25 },
-    { month: "Jun", hired: 31, rejected: 22 },
-    { month: "Jul", hired: 35, rejected: 19 },
-    { month: "Aug", hired: 38, rejected: 23 },
-    { month: "Sep", hired: 42, rejected: 20 },
-    { month: "Oct", hired: 40, rejected: 26 },
-    { month: "Nov", hired: 37, rejected: 30 },
-    { month: "Dec", hired: 45, rejected: 24 },
-  ],
-  "2026": [
-    { month: "Jan", hired: 48, rejected: 22 },
-    { month: "Feb", hired: 52, rejected: 20 },
-    { month: "Mar", hired: 55, rejected: 18 },
-    { month: "Apr", hired: 58, rejected: 16 },
-    { month: "May", hired: 62, rejected: 15 },
-    { month: "Jun", hired: 65, rejected: 14 },
-    { month: "Jul", hired: 68, rejected: 13 },
-    { month: "Aug", hired: 70, rejected: 12 },
-    { month: "Sep", hired: 74, rejected: 11 },
-    { month: "Oct", hired: 78, rejected: 10 },
-    { month: "Nov", hired: 82, rejected: 9 },
-    { month: "Dec", hired: 88, rejected: 8 },
-  ],
-};
+interface RecentApplicant {
+  id: number;
+  name: string;
+  status: string;
+  appliedAgo: string;
+}
 
-const dashboardData = {
-  newApplicantsThisMonth: { count: 184, change: "28.4" },
-  rejectedThisMonth: { count: 23, change: "-12.1" },
-  totalApplicants: 1287,
-  conversionRate: 18.7,
-};
+interface SourceItem {
+  name: string;
+  value: number;
+}
 
-// === Recent Applicants ===
-const RecentApplicants = () => (
-  <Card className="lg:col-span-2">
-    <CardHeader>
-      <CardTitle>Recent Applicants</CardTitle>
-      <CardDescription>Latest applicants in the pipeline</CardDescription>
-    </CardHeader>
-    <CardContent className="p-4">
-      <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
-        {[
-          { name: "Sarah Chen", status: "In Review" },
-          { name: "Michael Torres", status: "Interview Scheduled" },
-          { name: "Emma Williams", status: "Offer Extended" },
-          { name: "James Liu", status: "In Review" },
-          { name: "Aisha Patel", status: "Rejected" },
-          { name: "John Doe", status: "In Review" },
-          { name: "Jane Smith", status: "Offer Extended" },
-          { name: "Robert Brown", status: "Interview Scheduled" },
-          { name: "Lucy Green", status: "Rejected" },
-        ].map((applicant, i) => (
-          <div key={i} className="flex items-center gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold">
-              {applicant.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{applicant.name}</p>
-              <p className="text-xs text-muted-foreground">Applied 2 days ago</p>
-            </div>
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap ${
-                applicant.status === "Offer Extended"
-                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                  : applicant.status === "Interview Scheduled"
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                  : applicant.status === "Rejected"
-                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                  : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
-              }`}
-            >
-              {applicant.status}
-            </span>
-          </div>
-        ))}
-      </div>
-    </CardContent>
-  </Card>
-);
+interface MonthlyItem {
+  month: string;
+  hired: number;
+  rejected: number;
+}
 
-// === Dashboard Component ===
 export function Dashboard() {
-  const [selectedYear, setSelectedYear] = useState<Year>("2025");
+  const [dashboardData, setDashboardData] = useState<DashboardMetrics | null>(null);
+  const [sourcesData, setSourcesData] = useState<SourceItem[]>([]);
+  const [chartData, setChartData] = useState<MonthlyItem[]>([]);
+  const [recentApplicants, setRecentApplicants] = useState<RecentApplicant[]>([]);
+  const [selectedYear, setSelectedYear] = useState("2025");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const chartData = dataByYear[selectedYear];
+  // Fetch everything once
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const [metrics, sources, monthly, recent] = await Promise.all([
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/dashboard-metrics`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/applicant-sources`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/monthly-hired-rejected?year=${selectedYear}`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/recent-applicants`),
+        ]);
+
+        setDashboardData(metrics.data);
+        setSourcesData(sources.data);
+        setChartData(monthly.data);
+        setRecentApplicants(recent.data);
+      } catch (err) {
+        console.error("Dashboard load error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, [selectedYear]);
+
   const totalApplicants = sourcesData.reduce((acc, cur) => acc + cur.value, 0);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Offer Extended": return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300";
+      case "Interview Scheduled": return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
+      case "Rejected": return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300";
+      default: return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300";
+    }
+  };
+
+  if (loading) {
+    return <div className="p-10 text-center">Loading dashboard...</div>;
+  }
 
   return (
     <>
-      {/* Header */}
+      {/* Header - unchanged */}
       <div className="mb-8">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <span>Applicants</span> /{" "}
-          <span className="text-foreground font-medium">Dashboard</span>
+          <span>Applicants</span> / <span className="text-foreground font-medium">Dashboard</span>
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Applicants Dashboard</h1>
-        <p className="text-muted-foreground">
-          Pipeline overview and performance metrics
-        </p>
+        <p className="text-muted-foreground">Pipeline overview and performance metrics</p>
       </div>
 
       <div className="grid gap-6">
-        {/* Stats Cards */}
+        {/* Stats Cards - same design */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {/* Card 1 */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center justify-between">
@@ -183,14 +132,15 @@ export function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {dashboardData.newApplicantsThisMonth.count}
+                {dashboardData?.newApplicantsThisMonth.count ?? 0}
               </div>
               <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
-                +{dashboardData.newApplicantsThisMonth.change}% from last month
+                +{dashboardData?.newApplicantsThisMonth.change ?? "0"}% from last month
               </p>
             </CardContent>
           </Card>
 
+          {/* Card 2 */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center justify-between">
@@ -200,14 +150,15 @@ export function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {dashboardData.rejectedThisMonth.count}
+                {dashboardData?.rejectedThisMonth.count ?? 0}
               </div>
               <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">
-                {dashboardData.rejectedThisMonth.change}% from last month
+                {dashboardData?.rejectedThisMonth.change ?? "0"}% from last month
               </p>
             </CardContent>
           </Card>
 
+          {/* Card 3 */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center justify-between">
@@ -217,7 +168,7 @@ export function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {dashboardData.totalApplicants.toLocaleString()}
+                {dashboardData?.totalApplicants.toLocaleString() ?? 0}
               </div>
               <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
                 +22% from last month
@@ -225,6 +176,7 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
+          {/* Card 4 */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center justify-between">
@@ -233,7 +185,9 @@ export function Dashboard() {
               <CardDescription>Hired / Applied</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{dashboardData.conversionRate}%</div>
+              <div className="text-3xl font-bold">
+                {dashboardData?.conversionRate ? Number(dashboardData.conversionRate).toFixed(1) : "0"}%
+              </div>
               <p className="text-sm text-red-600 dark:text-red-400 mt-1">
                 -4% from last month
               </p>
@@ -241,17 +195,16 @@ export function Dashboard() {
           </Card>
         </div>
 
-        {/* Charts Section */}
+        {/* Charts Section - 100% same design */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Applicant Sources */}
+          {/* Applicant Sources - exact same pie + legend */}
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Applicant Sources</CardTitle>
               <CardDescription>Where applicants come from</CardDescription>
             </CardHeader>
-            <CardContent className="pb-8">
+            <CardContent>
               <div className="flex flex-col md:flex-row items-center gap-6">
-                {/* Pie Chart */}
                 <div className="flex-1 min-w-[220px]">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
@@ -266,8 +219,7 @@ export function Dashboard() {
                         paddingAngle={3}
                         activeIndex={activeIndex ?? undefined}
                         activeShape={(props: any) => {
-                          const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =
-                            props;
+                          const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
                           return (
                             <g>
                               <Sector
@@ -290,21 +242,13 @@ export function Dashboard() {
                         onMouseLeave={() => setActiveIndex(null)}
                       >
                         {sourcesData.map((_, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index]}
-                            style={{
-                              transition: "all 0.3s ease",
-                              cursor: "pointer",
-                            }}
-                          />
+                          <Cell key={`cell-${index}`} fill={COLORS[index]} style={{ transition: "all 0.3s ease", cursor: "pointer" }} />
                         ))}
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
 
-                {/* Legend */}
                 <div className="flex-1 flex flex-col justify-center gap-3 w-full">
                   {sourcesData.map((item, index) => {
                     const percentage = ((item.value / totalApplicants) * 100).toFixed(1);
@@ -313,11 +257,10 @@ export function Dashboard() {
                     return (
                       <div
                         key={index}
-                        className={`flex justify-between items-center p-3 rounded-lg transition-all cursor-pointer ${
-                          isActive
-                            ? "bg-muted/80 shadow-lg ring-2 ring-primary/30 scale-105"
-                            : "hover:bg-muted/40"
-                        }`}
+                        className={`flex justify-between items-center p-3 rounded-lg transition-all cursor-pointer ${isActive
+                          ? "bg-muted/80 shadow-lg ring-2 ring-primary/30 scale-105"
+                          : "hover:bg-muted/40"
+                          }`}
                         onMouseEnter={() => setActiveIndex(index)}
                         onMouseLeave={() => setActiveIndex(null)}
                       >
@@ -333,11 +276,7 @@ export function Dashboard() {
                             {item.name}
                           </span>
                         </div>
-                        <span
-                          className={`text-sm font-semibold ${
-                            isActive ? "text-foreground" : "text-muted-foreground"
-                          }`}
-                        >
+                        <span className={`text-sm font-semibold ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
                           {percentage}%
                         </span>
                       </div>
@@ -348,17 +287,46 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Recent Applicants */}
-          <RecentApplicants />
+          {/* Recent Applicants - same design, real data */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Recent Applicants</CardTitle>
+              <CardDescription>Latest applicants in the pipeline</CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 py-2">
+              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                {recentApplicants.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No applicants found</p>
+                ) : (
+                  recentApplicants.map((applicant) => (
+                    <div key={applicant.id} className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold">
+                        {applicant.name.split(" ").map((n) => n[0]).join("")}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{applicant.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Applied {formatDistanceToNow(new Date(applicant.appliedAgo), { addSuffix: true })}
+                        </p>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap ${getStatusColor(applicant.status)}`}>
+                        {applicant.status}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Bar Chart */}
+          {/* Bar Chart - exact same, real data */}
           <Card className="lg:col-span-4">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Hired vs Rejected Applicants</CardTitle>
                 <CardDescription>Monthly comparison over time</CardDescription>
               </div>
-              <Select value={selectedYear} onValueChange={(v) => setSelectedYear(v as Year)}>
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
                 <SelectTrigger className="w-[120px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -371,17 +339,14 @@ export function Dashboard() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
-                <BarChart
-                  data={chartData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
-                >
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--border))" />
                   <XAxis dataKey="month" tickMargin={10} />
                   <YAxis tickLine={false} />
                   <Tooltip
-                    cursor={false} // removes hover background
+                    cursor={false}
                     contentStyle={{
-                      backgroundColor: "#e5e7eb", // gray background
+                      backgroundColor: "#e5e7eb",
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "8px",
                       padding: "8px",

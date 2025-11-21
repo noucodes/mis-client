@@ -8,6 +8,7 @@ import {
   SquareUserRound,
   Layers,
   List,
+  GitCompareArrows,
 } from "lucide-react";
 
 export const UserData = {
@@ -214,6 +215,10 @@ export const HRecruitmentData = {
           title: "Status History",
           url: "/recruitment/applicants/status",
         },
+        {
+          title: "Assessment",
+          url: "/recruitment/assessment",
+        },
       ],
     },
     //
@@ -257,11 +262,10 @@ export const HRecruitmentData = {
         },
       ],
     },
-
     {
-      title: "Assessment",
-      url: "/recruitment/assessment",
-      icon: Layers,
+      title: "Job Source",
+      url: "/recruitment/job_source",
+      icon: GitCompareArrows,
     },
   ],
 };

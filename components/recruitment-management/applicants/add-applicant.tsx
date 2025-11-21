@@ -65,6 +65,7 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
         employment_type: "",
         referrer: "",
         job_source: "",
+        gender: "",
     })
 
     const [cvFile, setCvFile] = React.useState<File | null>(null)
@@ -130,6 +131,7 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
                 referrer: formData.referrer,
                 job_source: formData.job_source,
                 resume_url: cvUrl,
+                gender: formData.gender,
             }
 
             const token =
@@ -173,6 +175,7 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
                 employment_type: "",
                 referrer: "",
                 job_source: "",
+                gender: "",
             })
             setCvFile(null)
             setCvFileName("")
@@ -195,7 +198,7 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
 
             {/* ---------------------------------------------------- DIALOG ---------------------------------------------------- */}
             <DialogContent
-                className="sm:max-w-[500px] max-h-[90vh] overflow-y-scroll flex flex-col"
+                className="sm:max-w-[500px] max-h-[90vh] md:overflow-y-scroll flex flex-col min-lg:overflow-auto"
             >
                 <form
                     onSubmit={handleSubmit}
@@ -211,7 +214,7 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
                     </DialogHeader>
 
                     {/* ------------------- SCROLLABLE BODY ------------------- */}
-                    <div className="grid gap-4">
+                    <div className="grid gap-4 py-2">
                         {/* First & Last Name */}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="grid gap-3">
@@ -253,6 +256,30 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
                                 />
                             </div>
                             <div className="grid gap-3">
+                                <Label>Gender</Label>
+                                <Select
+                                    value={formData.gender}
+                                    onValueChange={handleSelectChange("gender")}
+                                    required
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select gender" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            <SelectLabel>Gender</SelectLabel>
+                                            <SelectItem value="Male">Male</SelectItem>
+                                            <SelectItem value="Female">Female</SelectItem>
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                        </div>
+
+                        {/* Position & Employment Location */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="grid gap-3">
                                 <Label htmlFor="phone">Phone</Label>
                                 <Input
                                     id="phone"
@@ -263,10 +290,6 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
                                     placeholder="+1234567890"
                                 />
                             </div>
-                        </div>
-
-                        {/* Position & Employment Location */}
-                        <div className="grid grid-cols-2 gap-3">
                             <div className="grid gap-3">
                                 <Label>Position Applied</Label>
                                 <Select
@@ -285,27 +308,6 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
                                             <SelectItem value="Team Lead">Team Lead</SelectItem>
                                             <SelectItem value="Project Manager">Project Manager</SelectItem>
                                             <SelectItem value="QA Engineer">QA Engineer</SelectItem>
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="grid gap-3">
-                                <Label>Employment Location</Label>
-                                <Select
-                                    value={formData.employment_type}
-                                    onValueChange={handleSelectChange("employment_type")}
-                                    required
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Type</SelectLabel>
-                                            <SelectItem value="Online">Online</SelectItem>
-                                            <SelectItem value="Onsite">Onsite</SelectItem>
-                                            <SelectItem value="Hybrid">Hybrid</SelectItem>
                                         </SelectGroup>
                                     </SelectContent>
                                 </Select>
@@ -339,6 +341,29 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
                             </div>
 
                             <div className="grid gap-3">
+                                <Label>Employment Location</Label>
+                                <Select
+                                    value={formData.employment_type}
+                                    onValueChange={handleSelectChange("employment_type")}
+                                    required
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            <SelectLabel>Type</SelectLabel>
+                                            <SelectItem value="Online">Online</SelectItem>
+                                            <SelectItem value="Onsite">Onsite</SelectItem>
+                                            <SelectItem value="Hybrid">Hybrid</SelectItem>
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="grid gap-3">
                                 <Label htmlFor="cv">CV / Resume</Label>
                                 <Input
                                     id="cv"
@@ -350,18 +375,18 @@ export function AddApplicantDialog({ onSuccess }: AddApplicantDialogProps) {
                                     className="flex items-center cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                                 />
                             </div>
-                        </div>
 
-                        {/* Referrer – last field*/}
-                        <div className="grid gap-3">
-                            <Label htmlFor="referrer">Referrer (Optional)</Label>
-                            <Input
-                                id="referrer"
-                                name="referrer"
-                                value={formData.referrer}
-                                onChange={handleInputChange}
-                                placeholder="Name of referrer"
-                            />
+                            {/* Referrer – last field*/}
+                            <div className="grid gap-3">
+                                <Label htmlFor="referrer">Referrer (Optional)</Label>
+                                <Input
+                                    id="referrer"
+                                    name="referrer"
+                                    value={formData.referrer}
+                                    onChange={handleInputChange}
+                                    placeholder="Name of referrer"
+                                />
+                            </div>
                         </div>
                     </div>
 

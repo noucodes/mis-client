@@ -74,8 +74,11 @@ interface UpcomingApplicant {
 
 // ── Main Component ───────────────────────────────────────────────────────────
 export default function Page() {
-  const [selectedYear, setSelectedYear] = useState("2025");
-  const [selectedMonth, setSelectedMonth] = useState("December");
+  const currentDate = new Date();
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
+  const [selectedMonth, setSelectedMonth] = useState(
+    currentDate.toLocaleString("en-US", { month: "long" }) // e.g. "November"
+  );
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -99,7 +102,7 @@ export default function Page() {
           axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/hiring-trend`, {
             params: { year: selectedYear },
           }),
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/upcoming-onboarding`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/applicant-status-history`),
         ]);
 
         setKpis(kpiRes.data);

@@ -1,8 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-
+import React, { useEffect, useState } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   PieChart,
   Pie,
@@ -17,7 +22,6 @@ import {
   Tooltip,
   Legend as RechartsLegend,
 } from "recharts";
-
 import {
   Select,
   SelectContent,
@@ -25,129 +29,101 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import axios from "axios";
+import { UserPlus } from "lucide-react";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-type MonthData = {
-  month: string;
-  "Initial Interview": number;
-  Examination: number;
-  "Final Interview": number;
-  Hired: number;
-};
-
-type OnboardingData = {
-  Applicant: number;
-  Shortlisted: number;
-  "Not Qualified": number;
-  Reject: number;
-  Blocklist: number;
-};
-
-type UpcomingApplicant = {
-  name: string;
-  statusValue: string;
-  comment: string;
-  updatedBy: string;
-  statusCreated: string;
-};
-
-// ── Data ─────────────────────────────────────────────────────────────────────
 const months = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
 
-const hiringTrendData: Record<string, MonthData[]> = {
-  "2023": months.map((m, i) => ({
-    month: m,
-    "Initial Interview": 45 + i * 5,
-    Examination: 38 + i * 4,
-    "Final Interview": 28 + i * 3,
-    Hired: 12 + i * 2.5,
-  })),
-  "2024": months.map((m, i) => ({
-    month: m,
-    "Initial Interview": 110 + i * 3,
-    Examination: 88 + i * 2.8,
-    "Final Interview": 68 + i * 2,
-    Hired: 44 + i * 1.2,
-  })),
-  "2025": months.map((m, i) => ({
-    month: m,
-    "Initial Interview": 160 + i * 3,
-    Examination: 128 + i * 2.7,
-    "Final Interview": 98 + i * 2,
-    Hired: 62 + i * 1.3,
-  })),
-  "2026": months.map((m, i) => ({
-    month: m,
-    "Initial Interview": 210 + i * 4,
-    Examination: 168 + i * 3.2,
-    "Final Interview": 128 + i * 2.5,
-    Hired: 82 + i * 1.5,
-  })),
-};
+// ── Types ─────────────────────────────────────────────────────────────────────
+interface RecruitmentKPIs {
+  total_applicants: number;
+  shortlisted: number;
+  hired: number;
+  rejected: number;
+  not_qualified: number;
+  blocklisted: number;
+  shortlist_rate: number;
+}
 
-const onboardingByMonth: Record<string, Record<string, OnboardingData>> = {
-  "2025": {
-    "December": { Applicant: 480, Shortlisted: 340, "Not Qualified": 90, Reject: 42, Blocklist: 8 },
-    "November": { Applicant: 465, Shortlisted: 332, "Not Qualified": 88, Reject: 40, Blocklist: 8 },
-    "October":  { Applicant: 450, Shortlisted: 325, "Not Qualified": 85, Reject: 38, Blocklist: 7 },
-    "September":{ Applicant: 440, Shortlisted: 320, "Not Qualified": 82, Reject: 36, Blocklist: 7 },
-    "August":   { Applicant: 430, Shortlisted: 315, "Not Qualified": 80, Reject: 35, Blocklist: 6 },
-    "July":     { Applicant: 420, Shortlisted: 310, "Not Qualified": 78, Reject: 34, Blocklist: 6 },
-    "June":     { Applicant: 410, Shortlisted: 305, "Not Qualified": 76, Reject: 33, Blocklist: 6 },
-    "May":      { Applicant: 400, Shortlisted: 300, "Not Qualified": 74, Reject: 32, Blocklist: 5 },
-    "April":    { Applicant: 390, Shortlisted: 295, "Not Qualified": 72, Reject: 31, Blocklist: 5 },
-    "March":    { Applicant: 380, Shortlisted: 290, "Not Qualified": 70, Reject: 30, Blocklist: 5 },
-    "February": { Applicant: 370, Shortlisted: 285, "Not Qualified": 68, Reject: 29, Blocklist: 5 },
-    "January":  { Applicant: 360, Shortlisted: 280, "Not Qualified": 66, Reject: 28, Blocklist: 5 },
-  },
-  "default": {
-    "December": { Applicant: 480, Shortlisted: 340, "Not Qualified": 90, Reject: 42, Blocklist: 8 },
-  },
-};
+interface OnboardingData {
+  Applicant: number;
+  Shortlisted: number;
+  "Not Qualified": number;
+  Reject: number;
+  Blocklist: number;
+}
 
-// ── Sample Upcoming Applicants ───────────────────────────────────────────────
-const upcomingApplicants: UpcomingApplicant[] = [
-  {
-    name: "fsdfsda",
-    statusValue: "Rejected",
-    comment: "Elton John Escudero",
-    updatedBy: "Human Resource",
-    statusCreated: "Nov 20, 2025",
-  },
-  {
-    name: "DKLAJAJS",
-    statusValue: "Applied",
-    comment: "Elton John Escudero",
-    updatedBy: "Human Resource",
-    statusCreated: "Nov 19, 2025",
-  },
-];
+interface MonthData {
+  month: string;
+  "Initial Interview": number;
+  Examination: number;
+  "Final Interview": number;
+  Hired: number;
+}
 
+interface UpcomingApplicant {
+  name: string;
+  statusValue: string;
+  comment: string;
+  updatedBy: string;
+  statusCreated: string;
+}
+
+// ── Main Component ───────────────────────────────────────────────────────────
 export default function Page() {
-  const [selectedYear, setSelectedYear] = React.useState("2025");
-  const [selectedMonth, setSelectedMonth] = React.useState("December");
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState("2025");
+  const [selectedMonth, setSelectedMonth] = useState("December");
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const currentMonthData =
-    hiringTrendData[selectedYear]?.find((m) => m.month === selectedMonth) ||
-    hiringTrendData[selectedYear]?.[11] ||
-    hiringTrendData["2025"][11];
+  // Real data from backend
+  const [kpis, setKpis] = useState<RecruitmentKPIs | null>(null);
+  const [pipelineData, setPipelineData] = useState<OnboardingData | null>(null);
+  const [trendData, setTrendData] = useState<MonthData[]>([]);
+  const [upcomingApplicants, setUpcomingApplicants] = useState<UpcomingApplicant[]>([]);
 
-  const currentOnboarding =
-    onboardingByMonth[selectedYear]?.[selectedMonth] ||
-    onboardingByMonth["default"]["December"];
+  // Fetch all data when year/month changes
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const [kpiRes, pipelineRes, trendRes, upcomingRes] = await Promise.all([
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/recruitment-kpis`, {
+            params: { year: selectedYear, month: selectedMonth },
+          }),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/onboarding-pipeline`, {
+            params: { year: selectedYear, month: selectedMonth },
+          }),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/hiring-trend`, {
+            params: { year: selectedYear },
+          }),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/upcoming-onboarding`),
+        ]);
 
-  const pieData = [
-    { name: "Applicant",       value: currentOnboarding.Applicant,       color: "#3b82f6" },
-    { name: "Shortlisted",     value: currentOnboarding.Shortlisted,     color: "#10b981" },
-    { name: "Not Qualified",   value: currentOnboarding["Not Qualified"], color: "#f59e0b" },
-    { name: "Reject",          value: currentOnboarding.Reject,          color: "#ef4444" },
-    { name: "Blocklist",       value: currentOnboarding.Blocklist,       color: "#6b7280" },
-  ];
+        setKpis(kpiRes.data);
+        setPipelineData(pipelineRes.data);
+        setTrendData(trendRes.data);
+        setUpcomingApplicants(upcomingRes.data);
+      } catch (err) {
+        console.error("Failed to load dashboard data", err);
+      }
+    };
+
+    fetchAll();
+  }, [selectedYear, selectedMonth]);
+
+  // Pie chart data (from real pipeline)
+  const pieData = pipelineData
+    ? [
+      { name: "Applicant", value: pipelineData.Applicant, color: "#3b82f6" },
+      { name: "Shortlisted", value: pipelineData.Shortlisted, color: "#10b981" },
+      { name: "Not Qualified", value: pipelineData["Not Qualified"], color: "#f59e0b" },
+      { name: "Reject", value: pipelineData.Reject, color: "#ef4444" },
+      { name: "Blocklist", value: pipelineData.Blocklist, color: "#6b7280" },
+    ]
+    : [];
 
   const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -209,32 +185,64 @@ export default function Page() {
       </div>
 
       {/* KPIs */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6 mb-8">
-        <Card className="border shadow-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Applicants</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-semibold">{currentOnboarding.Applicant}</div></CardContent>
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-3 mb-8">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center justify-between">Total Applicants <UserPlus className="h-5 w-5 text-muted-foreground" /></CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{kpis?.total_applicants ?? 0}</div>
+          </CardContent>
         </Card>
-        <Card className="border shadow-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Shortlisted</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-semibold text-green-600">{currentOnboarding.Shortlisted}</div></CardContent>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center justify-between">Shortlisted <UserPlus className="h-5 w-5 text-muted-foreground" /></CardTitle>
+            <CardDescription>This month</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {kpis?.shortlisted ?? 0}
+            </div>
+          </CardContent>
         </Card>
-        <Card className="border shadow-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Hired ({selectedMonth})</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-semibold text-emerald-600">{currentMonthData.Hired}</div></CardContent>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center justify-between">Hired ({selectedMonth}) <UserPlus className="h-5 w-5 text-muted-foreground" /></CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{kpis?.hired ?? 0}</div>
+          </CardContent>
         </Card>
-        <Card className="border shadow-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Rejected</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-semibold text-red-600">{currentOnboarding.Reject}</div></CardContent>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center justify-between">Rejected <UserPlus className="h-5 w-5 text-muted-foreground" /></CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{kpis?.rejected ?? 0}</div>
+          </CardContent>
         </Card>
-        <Card className="border shadow-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Not Qualified</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-semibold text-amber-600">{currentOnboarding["Not Qualified"]}</div></CardContent>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center justify-between">Not Qualified <UserPlus className="h-5 w-5 text-muted-foreground" /></CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{kpis?.not_qualified ?? 0}</div>
+          </CardContent>
         </Card>
-        <Card className="border shadow-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Shortlist Rate</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-semibold">
-            {Math.round((currentOnboarding.Shortlisted / currentOnboarding.Applicant) * 100)}%
-          </div></CardContent>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center justify-between">Shortlist Rate <UserPlus className="h-5 w-5 text-muted-foreground" /></CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {kpis?.shortlist_rate != null ? `${kpis.shortlist_rate}%` : "0%"}
+            </div>
+          </CardContent>
         </Card>
       </div>
 
@@ -312,16 +320,16 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={340}>
-              <LineChart data={hiringTrendData[selectedYear]} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
+              <LineChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 40 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} angle={-45} textAnchor="end" height={70} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip contentStyle={{ backgroundColor: "#1f2937", borderRadius: "8px", color: "white" }} />
                 <RechartsLegend verticalAlign="top" height={36} />
                 <Line type="monotone" dataKey="Initial Interview" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                <Line type="monotone" dataKey="Examination"       stroke="#8b5cf6" strokeWidth={3.5} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                <Line type="monotone" dataKey="Final Interview"   stroke="#f59e0b" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                <Line type="monotone" dataKey="Hired"             stroke="#10b981" strokeWidth={4} dot={{ r: 5 }} activeDot={{ r: 8 }} />
+                <Line type="monotone" dataKey="Examination" stroke="#8b5cf6" strokeWidth={3.5} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="Final Interview" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="Hired" stroke="#10b981" strokeWidth={4} dot={{ r: 5 }} activeDot={{ r: 8 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -353,33 +361,40 @@ export default function Page() {
                 </tr>
               </thead>
               <tbody>
-                {filteredApplicants.map((applicant, i) => (
-                  <tr
-                    key={i}
-                    className="bg-white shadow-sm rounded-lg transition-all hover:scale-[1.01] hover:shadow-md"
-                  >
-                    <td className="px-4 py-3">{applicant.name}</td>
-                    <td>
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          applicant.statusValue.toLowerCase() === "rejected"
+                {filteredApplicants.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8 text-muted-foreground">
+                      No applicants found
+                    </td>
+                  </tr>
+                ) : (
+                  filteredApplicants.map((applicant, i) => (
+                    <tr
+                      key={i}
+                      className="bg-white shadow-sm rounded-lg transition-all hover:scale-[1.01] hover:shadow-md"
+                    >
+                      <td className="px-4 py-3">{applicant.name}</td>
+                      <td>
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${applicant.statusValue.toLowerCase() === "rejected"
                             ? "bg-red-100 text-red-600"
                             : "bg-blue-100 text-blue-600"
-                        }`}
-                      >
-                        {applicant.statusValue}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">{applicant.comment}</td>
-                    <td className="px-4 py-3">{applicant.updatedBy}</td>
-                    <td className="px-4 py-3">{applicant.statusCreated}</td>
-                  </tr>
-                ))}
+                            }`}
+                        >
+                          {applicant.statusValue}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">{applicant.comment || "-"}</td>
+                      <td className="px-4 py-3">{applicant.updatedBy}</td>
+                      <td className="px-4 py-3">{applicant.statusCreated}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </CardContent>
       </Card>
-    </main>
+    </main >
   );
 }

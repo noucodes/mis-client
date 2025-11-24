@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from "axios";
+import { formatDistanceToNow } from "date-fns";
 
 interface DashboardData {
   totalOnboardings: number;
@@ -15,7 +16,7 @@ interface DashboardData {
   pending: number;
   monthlyHires: { month: string; hires: number }[];
   taskCompletion: { task: string; task_id: string; completion_rate: number }[];
-  recentActivities: { name: string; task: string; timeAgo: string }[];
+  recentActivities: { name: string; task: string; timeAgoRaw: string; timeAgo?: string; }[];
 }
 
 export default function Dashboard() {
@@ -24,7 +25,20 @@ export default function Dashboard() {
 
   useEffect(() => {
     axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/onboarding-dashboard`)
-      .then(res => setData(res.data))
+      .then(res => {
+        const rawData = res.data;
+
+        // Format time for Recent Activities
+        const formattedActivities = rawData.recentActivities.map((activity: { name: string; task: string; timeAgoRaw: string }) => ({
+          ...activity,
+          timeAgo: formatDistanceToNow(new Date(activity.timeAgoRaw), { addSuffix: true })
+        }));
+
+        setData({
+          ...rawData,
+          recentActivities: formattedActivities
+        });
+      })
       .catch(() => setData(null));
   }, []);
 

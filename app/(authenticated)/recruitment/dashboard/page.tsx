@@ -38,8 +38,11 @@ const months = [
 ];
 
 export default function Page() {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
-  const [selectedMonth, setSelectedMonth] = useState(months[new Date().getMonth()]);
+  const currentDate = new Date();
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
+  const [selectedMonth, setSelectedMonth] = useState(
+    currentDate.toLocaleString("en-US", { month: "long" }) // e.g. "November"
+  );
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -78,10 +81,16 @@ export default function Page() {
     const fetchAll = async () => {
       try {
         const [kpiRes, pipelineRes, trendRes, upcomingRes] = await Promise.all([
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/recruitment-kpis`, { params: { year: selectedYear, month: selectedMonth }}),
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/onboarding-pipeline`, { params: { year: selectedYear, month: selectedMonth }}),
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/hiring-trend`, { params: { year: selectedYear }}),
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/upcoming-onboarding`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/recruitment-kpis`, {
+            params: { year: selectedYear, month: selectedMonth },
+          }),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/onboarding-pipeline`, {
+            params: { year: selectedYear, month: selectedMonth },
+          }),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/hiring-trend`, {
+            params: { year: selectedYear },
+          }),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/reports/applicant-status-history`),
         ]);
         setKpis(kpiRes.data);
         setPipelineData(pipelineRes.data);

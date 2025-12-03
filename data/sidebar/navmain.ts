@@ -15,89 +15,31 @@ export const UserData = {
   label: "User Management",
   items: [
     {
-      title: "Playground",
-      url: "#",
+      title: "Dashboard",
+      url: "/user/dashboard",
       icon: SquareTerminal,
       isActive: true,
-      items: [
-        {
-          title: "Dashboard",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
     },
+
     {
-      title: "Models",
-      url: "#",
+      title: "Attendance",
+      url: "/user/attendance",
       icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
     },
     {
-      title: "Documentation",
-      url: "#",
+      title: "Request",
+      url: "/user/request",
       icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
     },
     {
-      title: "Settings",
-      url: "#",
+      title: "Update Logs",
+      url: "/user/updatelog",
       icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
+    },
+     {
+      title: "Pending",
+      url: "/user/pending",
+      icon: Settings2,
     },
   ],
 };
@@ -126,6 +68,10 @@ export const HRData = {
         {
           title: "Employment Status History",
           url: "/hr/construction",
+        },
+        {
+          title: "Attendance",
+          url: "/hr/attendance",
         },
       ],
     },
